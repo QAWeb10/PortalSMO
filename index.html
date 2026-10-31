@@ -1463,7 +1463,9 @@ body:has(#loginBox:not(.hidden)){background-color:#172433!important;background-i
 @media(max-width:380px){#homeBox .home-header-actions{gap:6px!important}#homeBox .home-fy{font-size:10px!important}#homeBox .home-header-actions .home-logout{font-size:10px!important;padding-left:6px!important}}
 </style>
 
-\n\n
+
+
+
 
 <style id="smo-session-pending-critical">
 html.smo-session-pending #loginBox{display:none!important;visibility:hidden!important}
@@ -1637,7 +1639,7 @@ INGRESAR
           <span class="home-arrow">›</span>
         </button>
 
-        <button id="btnAuditoria" class="home-card home-auditoria" onclick="location.href='Auditoría recibo.html'">
+        <button id="btnAuditoria" class="home-card home-auditoria" onclick="location.href='Auditor#U251c#U00a1a recibo.html'">
           <span class="home-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5h6M9 11l2 2 4-4"/></svg></span>
           <span class="home-card-text">
             <span class="tituloBoton">Sistema Auditorías</span>
@@ -2695,8 +2697,6 @@ body:has(#loginBox:not(.hidden)) .qa-floating-logo{background:linear-gradient(14
  #homeBox .home-section-head{margin-bottom:12px!important}
 }
 </style>
-</body>
-</html>
 <style id="qa-index-title-finish">.appbar .tituloSistema{display:flex;flex-direction:column;justify-content:center;line-height:1.12!important}.appbar .titulo1{display:none!important}.appbar .titulo2{color:#fff!important;font-size:clamp(21px,2.3vw,29px)!important;font-weight:900!important;letter-spacing:.025em!important;line-height:1.15!important;text-shadow:0 2px 10px rgba(0,0,0,.2)}@media(max-width:600px){.appbar .titulo2{font-size:clamp(18px,5vw,24px)!important}}
 </style>
 
@@ -2979,3 +2979,18 @@ html.smo-session-pending body:has(#loginBox:not(.hidden))::before,html.smo-sessi
  #homeBox .home-logout{width:36px!important;height:36px!important;min-height:36px!important}
 }
 </style>
+<style id="smo-home-contrast-and-text-fix">
+/* Contraste de los rótulos del Home: Templates sobre fondo claro y Cerrar sesión sobre azul marino. */
+#homeBox .home-section-templates .home-section-head h2,
+#homeBox #tituloTemplates{color:#17365E!important;text-shadow:none!important}
+#homeBox .home-section-templates .home-section-head .home-section-kicker{color:#2276C0!important}
+#homeBox .home-section-templates .home-section-head{background:transparent!important}
+#homeBox .home-header-actions button.home-logout,
+#homeBox .home-header-actions .home-logout,
+#homeBox .home-header-actions .home-logout-label,
+#homeBox .home-header-actions .home-logout-icon{color:#FFFFFF!important}
+#homeBox .home-header-actions button.home-logout{background:rgba(255,255,255,.14)!important;border:1px solid rgba(255,255,255,.42)!important}
+#homeBox .home-header-actions button.home-logout:hover{background:rgba(255,255,255,.24)!important;color:#FFFFFF!important}
+</style>
+</body>
+</html>
