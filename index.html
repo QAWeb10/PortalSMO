@@ -1486,25 +1486,25 @@ html.smo-session-pending body:has(#loginBox:not(.hidden))::before,html.smo-sessi
 
   <div id="mensajeError" class="mensaje-error" role="alert" aria-live="polite"></div>
 
-  <label class="qa-field qa-field-user" for="usuario"><span class="qa-field-icon" aria-hidden="true">♙</span><input type="text" id="usuario" placeholder="Nombre" aria-label="Nombre" list="listaUsuarios" oninput="actualizarDatos()"></label>
+  <label class="qa-field qa-field-user" for="usuario"><span class="qa-field-icon" aria-hidden="true">👤</span><input type="text" id="usuario" placeholder="Nombre" aria-label="Nombre" list="listaUsuarios" oninput="actualizarDatos()"></label>
   <datalist id="listaUsuarios"></datalist>
 
-  <label class="qa-field qa-field-password" for="password"><span class="qa-field-icon" aria-hidden="true">♙</span><input type="password" id="password" placeholder="Contraseña" aria-label="Contraseña"></label>
+  <label class="qa-field qa-field-password" for="password"><span class="qa-field-icon" aria-hidden="true">🔒</span><input type="password" id="password" placeholder="Contraseña" aria-label="Contraseña"></label>
 
   <div class="fila qa-login-row">
-    <div class="datoAuto"><div class="etiqueta">CUADRILLA</div><label class="qa-field" for="cuadrilla"><span class="qa-field-icon" aria-hidden="true">▦</span><input type="text" id="cuadrilla" readonly aria-label="Cuadrilla"></label></div>
-    <div class="datoAuto"><div class="etiqueta">ÁREA</div><label class="qa-field" for="area"><span class="qa-field-icon" aria-hidden="true">⌖</span><input type="text" id="area" readonly aria-label="Área"></label></div>
+    <div class="datoAuto"><div class="etiqueta">CUADRILLA</div><label class="qa-field" for="cuadrilla"><span class="qa-field-icon" aria-hidden="true">👥</span><input type="text" id="cuadrilla" readonly aria-label="Cuadrilla"></label></div>
+    <div class="datoAuto"><div class="etiqueta">ÁREA</div><label class="qa-field" for="area"><span class="qa-field-icon" aria-hidden="true">🏭</span><input type="text" id="area" readonly aria-label="Área"></label></div>
   </div>
 
   <div class="fila qa-login-row">
-    <div class="datoAuto"><div class="etiqueta">TURNO</div><label class="qa-field" for="turno"><span class="qa-field-icon" aria-hidden="true">◷</span><select id="turno"><option value="">Seleccionar</option><option value="1">1RO</option><option value="2">2DO</option><option value="3">3RO</option><option value="MIXTO">MIXTO</option></select></label></div>
-    <div class="datoAuto"><div class="etiqueta">FECHA</div><label class="qa-field" for="fecha"><span class="qa-field-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5h6M9 11l2 2 4-4"/></svg></span><input type="text" id="fecha" readonly aria-label="Fecha"></label></div>
+    <div class="datoAuto"><div class="etiqueta">TURNO</div><label class="qa-field" for="turno"><span class="qa-field-icon" aria-hidden="true">🕒</span><select id="turno"><option value="">Seleccionar</option><option value="1">1RO</option><option value="2">2DO</option><option value="3">3RO</option><option value="MIXTO">MIXTO</option></select></label></div>
+    <div class="datoAuto"><div class="etiqueta">FECHA</div><label class="qa-field" for="fecha"><span class="qa-field-icon" aria-hidden="true">📅</span><input type="text" id="fecha" readonly aria-label="Fecha"></label></div>
   </div>
 
   <button class="btn-login qa-login-submit" onclick="login()">INGRESAR <span aria-hidden="true">→</span></button>
 
   <div class="card-visitante qa-glass-visitor" role="button" tabindex="0" onclick="mostrarCliente()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();mostrarCliente();}">
-    <div class="visitante-icono" aria-hidden="true">♙</div>
+    <div class="visitante-icono" aria-hidden="true">👤</div>
     <div class="visitante-texto"><div class="visitante-titulo">Acceso para visitantes</div><div class="visitante-sub">Registrar alerta sin cuenta</div></div>
     <div class="visitante-flecha" aria-hidden="true">›</div>
   </div>
@@ -1631,7 +1631,11 @@ INGRESAR
 
       <div class="home-grid home-grid-templates">
         <button id="btnAlertas" class="home-card home-alerta" onclick="location.href='Alertas de calidad.html'">
-          <span class="home-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21v-5"/><path d="M12 16c-2.8 0-5-2.1-5-4.8a4 4 0 0 1 4-4.1 3.3 3.3 0 0 1 1 0 4 4 0 0 1 4 4.1c0 2.7-2.2 4.8-5 4.8Z"/><path d="M12 7V4"/></svg></span>
+          <span class="home-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+  <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+</svg></span>
           <span class="home-card-text">
             <span class="tituloBoton">Sistema Alertas</span>
             <span class="subtituloBoton">Registrar hallazgos de calidad</span>
