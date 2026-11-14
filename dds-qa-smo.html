@@ -554,8 +554,8 @@ header.qa-unified-header,header.appbar.qa-unified-header,#mainHeader.qa-unified-
 </section>
 <section class="panel">
 <div class="panel-head"><div><div class="panel-title">Scorecard de calidad · captura en tiempo real</div><div class="panel-desc">Edita nombres, unidades, objetivo, responsable y valores directamente en la tabla.</div></div>
-<div class="panel-tools"><div class="date-nav"><button class="btn-outline" id="prevDays">← Anteriores</button><span class="range-label" id="rangeLabel">—</span><button class="btn-outline" id="nextDays">Siguientes →</button><button class="btn-outline" id="todayBtn">Ir a hoy</button></div><button id="addMetricDaily">＋ Métrica diaria</button><button class="btn-yellow" id="addDayTop">＋ Agregar día</button><button class="btn-light" id="exportBtn">⇩ Exportar CSV</button><button id="addMetricWeekly">＋ Métrica semanal</button></div></div>
-<div class="scorecard-split" id="tableWrap"><div class="scorecard-fixed-pane" id="fixedPane"><table class="scorecard scorecard-fixed" id="scorecardFixed"></table></div><div class="scorecard-dates-pane" id="datesPane"><table class="scorecard scorecard-dates" id="scorecard"></table></div></div>
+<div class="panel-tools"><div class="date-nav"><button class="btn-outline" id="prevDays" title="Ver los 14 días anteriores">← Anteriores</button><span class="range-label" id="rangeLabel">—</span><button class="btn-outline" id="nextDays" title="Ver los siguientes 14 días">Siguientes →</button><select class="field" id="jumpDate" aria-label="Ir directamente a una fecha" title="Ir directamente a una fecha"><option value="">Ir a fecha…</option></select><button class="btn-outline" id="todayBtn">Hoy</button></div><button id="addMetricDaily">＋ Métrica diaria</button><button class="btn-yellow" id="addDayTop">＋ Agregar día</button><button class="btn-danger" id="removeDayTop">− Eliminar día</button><button class="btn-light" id="exportBtn">⇩ Exportar CSV</button><button id="addMetricWeekly">＋ Métrica semanal</button></div></div>
+<div class="table-wrap" id="tableWrap"><table class="scorecard" id="scorecard"></table></div>
 <div class="footer-note">La vista muestra 14 días por vez para facilitar la captura en móvil. Usa “Siguientes” o “Anteriores” para cambiar el periodo; el historial completo se conserva.</div>
 </section>
 </main>
@@ -595,73 +595,27 @@ function headerFilter(key,label,extraClass=''){
  return `<button type="button" class="th-filter ${active?'active':''}" data-filter-key="${esc(key)}" data-filter-label="${esc(label)}" title="Filtrar ${esc(label)}" aria-label="Filtrar ${esc(label)}" aria-pressed="${active}">▾</button>`;
 }
 function renderTable(){
- const shown=visibleDates();$('rangeLabel').textContent=shown.length?`${fmtDate(shown[0])} – ${fmtDate(shown[shown.length-1])}`:'Sin fechas';
+ const shown=visibleDates();
+ $('rangeLabel').textContent=shown.length?`${fmtDate(shown[0])} – ${fmtDate(shown[shown.length-1])}`:'Sin fechas';
  $('prevDays').disabled=offset<=0;$('nextDays').disabled=offset+PAGE_DAYS>=dates.length;
- let h='<thead><tr><th><span class="th-label">Métrica</span>'+headerFilter('name','Métrica')+'</th><th><span class="th-label">Unidad</span>'+headerFilter('units','Unidad')+'</th><th><span class="th-label">Objetivo</span>'+headerFilter('target','Objetivo')+'</th><th><span class="th-label">Responsable</span>'+headerFilter('owner','Responsable')+'</th>'+shown.map(d=>`<th class="date-head"><span class="th-label">${fmtDate(d)}<br><small>${new Date(d+'T12:00:00').toLocaleDateString('es-MX',{weekday:'short'})}</small></span>${headerFilter('date:'+d,fmtDate(d))}</th>`).join('')+'<th>Acciones</th></tr></thead><tbody>';
+ const jump=$('jumpDate');
+ if(jump){const selected=jump.value;jump.innerHTML='<option value="">Ir a fecha…</option>'+dates.map(d=>`<option value="${d}">${fmtDate(d)}</option>`).join('');if(dates.includes(selected))jump.value=selected;}
+ let h='<thead><tr><th><span class="th-label">Métrica</span>'+headerFilter('name','Métrica')+'</th><th><span class="th-label">Unidad</span>'+headerFilter('units','Unidad')+'</th><th><span class="th-label">Objetivo</span>'+headerFilter('target','Objetivo')+'</th><th><span class="th-label">Responsable</span>'+headerFilter('owner','Responsable')+'</th>'+shown.map(d=>`<th class="date-head"><span class="th-label">${fmtDate(d)}<br><small>${new Date(d+'T12:00:00').toLocaleDateString('es-MX',{weekday:'short'})}</small></span>${headerFilter('date:'+d,fmtDate(d))}</th>`).join('')+'</tr></thead><tbody>';
  for(const section of ['daily','weekly']){
-   const group=metrics.filter(m=>m.section===section&&passesColumnFilters(m)).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
-   if(!group.length)continue;
-   h+=`<tr class="section-row"><td class="section-label-frozen" colspan="4">${section==='daily'?'Daily Metrics':'Weekly Metrics'} <button class="section-action" onclick="addMetric('${section}')">＋ Añadir línea</button></td>${shown.map(()=>'<td class="section-date-spacer"></td>').join('')}<td class="section-actions-spacer"></td></tr>`;
-   for(const m of group){
-     h+=`<tr data-id="${esc(m.id)}"><td><input class="meta-input metric-name" aria-label="Nombre de métrica" data-field="name" value="${esc(m.name)}"></td><td><input class="meta-input unit-input" aria-label="Unidad" data-field="units" value="${esc(m.units)}"></td><td><input class="meta-input" aria-label="Objetivo" data-field="target" value="${esc(m.target)}"></td><td><input class="meta-input" aria-label="Responsable" data-field="owner" value="${esc(m.owner)}"></td>`;
-     for(const d of shown){const v=m.values?.[d]??'';h+=`<td class="metric-cell ${v===''?'cell-empty':''}"><input class="cell-input" aria-label="${esc(m.name)} ${d}" data-date="${d}" value="${esc(v)}" placeholder="—"></td>`;}
-     h+=`<td><div class="row-actions"><button class="icon-btn" title="Duplicar métrica" onclick="duplicateMetric('${esc(m.id)}')">Duplicar</button><button class="icon-btn" title="Eliminar métrica" onclick="deleteMetric('${esc(m.id)}')">Eliminar</button></div></td></tr>`;
-   }
+  const group=metrics.filter(m=>m.section===section&&passesColumnFilters(m)).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+  if(!group.length)continue;
+  h+=`<tr class="section-row"><td class="section-label-frozen" colspan="4">${section==='daily'?'Daily Metrics':'Weekly Metrics'} <button type="button" class="section-action" onclick="addMetric('${section}')">＋ Añadir línea</button></td>${shown.map(()=>'<td class="section-date-spacer"></td>').join('')}</tr>`;
+  for(const m of group){
+   h+=`<tr data-id="${esc(m.id)}"><td class="metric-name-cell"><div class="metric-edit-wrap"><input class="meta-input metric-name" aria-label="Nombre de métrica" data-field="name" value="${esc(m.name)}"><button type="button" class="metric-action-btn metric-duplicate-btn" title="Duplicar métrica" aria-label="Duplicar métrica" onclick="duplicateMetric('${esc(m.id)}')">⧉</button><button type="button" class="metric-action-btn metric-delete-btn" title="Eliminar métrica" aria-label="Eliminar métrica" onclick="deleteMetric('${esc(m.id)}')">×</button></div></td><td><input class="meta-input unit-input" aria-label="Unidad" data-field="units" value="${esc(m.units)}"></td><td><input class="meta-input" aria-label="Objetivo" data-field="target" value="${esc(m.target)}"></td><td><input class="meta-input" aria-label="Responsable" data-field="owner" value="${esc(m.owner)}"></td>`;
+   for(const d of shown){const v=m.values?.[d]??'';h+=`<td class="metric-cell ${v===''?'cell-empty':''}"><input class="cell-input" aria-label="${esc(m.name)} ${d}" data-date="${d}" value="${esc(v)}" placeholder="—"></td>`;}
+   h+='</tr>';
+  }
  }
  h+='</tbody>';
- // Divide la tabla en dos paneles reales: metadatos fijos y fechas desplazables.
- const template=document.createElement('template');template.innerHTML=`<table>${h}</table>`;
- const source=template.content.querySelector('table');
- const fixed=document.createElement('table');fixed.className='scorecard scorecard-fixed';fixed.id='scorecardFixed';
- const datesTable=document.createElement('table');datesTable.className='scorecard scorecard-dates';datesTable.id='scorecard';
- for(const section of ['thead','tbody']){
-   const srcSection=source.querySelector(section);if(!srcSection)continue;
-   const leftSection=document.createElement(section),rightSection=document.createElement(section);
-   for(const row of srcSection.rows){
-  const leftRow=document.createElement('tr');
-const rightRow=document.createElement('tr');
-
-if (row.className) {
-  leftRow.className = row.className;
-  rightRow.className = row.className;
-}
-
-if (row.dataset.id) {
-  leftRow.dataset.id = row.dataset.id;
-  rightRow.dataset.id = row.dataset.id;
-}
-     [...row.cells].forEach((cell,index)=>{
-       const clone=cell.cloneNode(true);
-       if(row.classList.contains('section-row')) { (index===0?leftRow:rightRow).appendChild(clone); }
-       else { (index<4?leftRow:rightRow).appendChild(clone); }
-     });
-     leftSection.appendChild(leftRow);rightSection.appendChild(rightRow);
-   }
-   fixed.appendChild(leftSection);datesTable.appendChild(rightSection);
- }
- $('fixedPane').replaceChildren(fixed);$('datesPane').replaceChildren(datesTable);
-fixed.querySelectorAll('input').forEach(input => {
-  input.addEventListener('input', onCellChange);
-  input.addEventListener('change', onCellChange);
-});
-
-datesTable.querySelectorAll('input').forEach(input => {
-  input.addEventListener('input', onCellChange);
-  input.addEventListener('change', onCellChange);
-});
- [fixed,datesTable].forEach(table=>table.querySelectorAll('[data-filter-key]').forEach(btn=>btn.addEventListener('click',()=>openColumnFilter(btn.dataset.filterKey,btn.dataset.filterLabel,btn))));
- syncScorecardVerticalScroll();
+ const table=$('scorecard');table.innerHTML=h;
+ table.querySelectorAll('input').forEach(input=>{input.addEventListener('input',onCellChange);input.addEventListener('change',onCellChange);});
+ table.querySelectorAll('[data-filter-key]').forEach(btn=>btn.addEventListener('click',()=>openColumnFilter(btn.dataset.filterKey,btn.dataset.filterLabel,btn)));
  updateKpis();
-}
-let scorecardScrollSyncBound=false,scorecardScrollSyncLock=false;
-function syncScorecardVerticalScroll(){
- const left=$('fixedPane'),right=$('datesPane');if(!left||!right||scorecardScrollSyncBound)return;
- const sync=(source,target)=>{if(scorecardScrollSyncLock)return;scorecardScrollSyncLock=true;target.scrollTop=source.scrollTop;requestAnimationFrame(()=>{scorecardScrollSyncLock=false;});};
- left.addEventListener('scroll',()=>sync(left,right),{passive:true});
- right.addEventListener('scroll',()=>sync(right,left),{passive:true});
- // La rueda vertical debe funcionar sobre cualquiera de los dos paneles.
- [left,right].forEach(pane=>pane.addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){const other=pane===left?right:left;other.scrollTop=pane.scrollTop+e.deltaY;}},{passive:true}));
- scorecardScrollSyncBound=true;
 }
 function columnFilterValues(key){
  const values=[...new Set(metrics.map(m=>filterValue(m,key)))];
@@ -718,6 +672,7 @@ async function saveMetric(m){
  }catch(e){
   console.error(e);setStatus('Error de sincronización · revisa SQL/permisos','bad');
   showToast('No se pudo guardar en la nube: '+(e.message||e),'error');
+  throw e;
  }
 }
 async function saveConfig(){try{const {error}=await sb.from('dds_qa_smo_config').upsert({id:'main',dates,updated_at:new Date().toISOString()},{onConflict:'id'});if(error)throw error;markSaved();}catch(e){console.error(e);setStatus('No se guardaron las fechas','bad');showToast('No se pudieron guardar los días. Revisa la tabla de configuración en Supabase.','error');}}
@@ -731,7 +686,49 @@ async function addMetric(section){
  const el=$(`scorecardFixed`).querySelector(`tr[data-id="${m.id}"] input[data-field="name"]`);if(el){el.focus();el.select();}showToast('Línea de métrica agregada.');
 }
 async function duplicateMetric(id){const src=metrics.find(m=>m.id===id);if(!src)return;const m={...src,id:crypto.randomUUID?crypto.randomUUID():'m-'+Date.now(),name:src.name+' (copia)',sort_order:Math.max(0,...metrics.filter(x=>x.section===src.section).map(x=>x.sort_order||0))+1,values:{}};metrics.push(m);renderTable();await saveMetric(m);showToast('Métrica duplicada, valores vacíos.');}
-async function deleteMetric(id){const m=metrics.find(x=>x.id===id);if(!m)return;if(!confirm(`¿Eliminar la métrica “${m.name}”? Esta acción se sincronizará para todos los usuarios.`))return;metrics=metrics.filter(x=>x.id!==id);renderTable();try{const {error}=await sb.from('dds_qa_smo_metrics').delete().eq('id',id);if(error)throw error;showToast('Métrica eliminada.');}catch(e){showToast('No se pudo eliminar en la nube: '+e.message,'error');}}
+async function deleteMetric(id){
+ const m=metrics.find(x=>x.id===id);if(!m)return;
+ if(!confirm(`¿Eliminar la métrica “${m.name}”? Esta acción se aplicará a todos los usuarios y no se puede deshacer.`))return;
+ clearTimeout(saveTimers.get(id));saveTimers.delete(id);
+ const previous=[...metrics];metrics=metrics.filter(x=>x.id!==id);renderTable();
+ try{const {error}=await sb.from('dds_qa_smo_metrics').delete().eq('id',id);if(error)throw error;showToast('Métrica eliminada correctamente.');}
+ catch(e){metrics=previous;renderTable();showToast('No se pudo eliminar la métrica. Se restauró en pantalla: '+(e.message||e),'error');}
+}
+function openDeleteDayDialog(){
+ if(dates.length<=1){showToast('Debe quedar al menos un día en el calendario.','error');return;}
+ const root=$('modalRoot'),options=dates.map(d=>`<option value="${d}">${fmtDate(d)} (${d})</option>`).join('');
+ root.innerHTML=`<div class="modal-backdrop" id="deleteDayBackdrop"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="deleteDayTitle"><h3 id="deleteDayTitle">Eliminar un día del scorecard</h3><p>Selecciona la fecha que deseas quitar. También se eliminarán los valores capturados de ese día en todas las métricas. Esta acción se sincronizará para todos los usuarios.</p><label for="deleteDaySelect">Fecha a eliminar</label><select id="deleteDaySelect" class="field">${options}</select><p class="delete-day-warning" id="deleteDayImpact"></p><div class="modal-actions"><button type="button" class="btn-outline" id="cancelDeleteDay">Cancelar</button><button type="button" class="btn-danger" id="confirmDeleteDay">Eliminar día y sus datos</button></div></div></div>`;
+ const select=$('deleteDaySelect'),impact=$('deleteDayImpact');
+ const updateImpact=()=>{const d=select.value,count=metrics.filter(m=>Object.prototype.hasOwnProperty.call(m.values||{},d)).length;impact.textContent=`Se borrarán ${count} valores de métricas asociados a esta fecha.`;};
+ select.addEventListener('change',updateImpact);updateImpact();
+ $('cancelDeleteDay').addEventListener('click',()=>root.innerHTML='');
+ $('deleteDayBackdrop').addEventListener('click',e=>{if(e.target.id==='deleteDayBackdrop')root.innerHTML='';});
+ $('confirmDeleteDay').addEventListener('click',()=>deleteDay(select.value));
+}
+async function deleteDay(day){
+ if(!dates.includes(day))return;
+ const affected=metrics.filter(m=>Object.prototype.hasOwnProperty.call(m.values||{},day));
+ const previousDates=[...dates],previousMetrics=metrics.map(m=>({...m,values:{...(m.values||{})}}));
+ const originalAffected=previousMetrics.filter(m=>affected.some(a=>a.id===m.id));
+ dates=dates.filter(d=>d!==day);affected.forEach(m=>{delete m.values[day];});
+ columnFilters.delete('date:'+day);offset=Math.min(offset,Math.max(0,dates.length-PAGE_DAYS));
+ renderTable();$('modalRoot').innerHTML='';
+ try{
+  const writes=await Promise.allSettled(affected.map(m=>sb.from('dds_qa_smo_metrics').upsert({id:m.id,section:m.section,name:m.name,units:m.units,target:String(m.target??''),owner:m.owner,sort_order:m.sort_order||0,values:{...(m.values||{})},updated_at:new Date().toISOString()},{onConflict:'id'}).then(({error})=>{if(error)throw error;})));
+  const failed=writes.find(x=>x.status==='rejected');
+  if(failed)throw failed.reason;
+  const {error:configError}=await sb.from('dds_qa_smo_config').upsert({id:'main',dates,updated_at:new Date().toISOString()},{onConflict:'id'});
+  if(configError)throw configError;
+  markSaved();
+  showToast(`Día ${fmtDate(day)} eliminado. Se actualizaron ${affected.length} métricas.`);
+ }catch(e){
+  dates=previousDates;metrics=previousMetrics;renderTable();
+  // Reescribe los valores originales para revertir cualquier guardado parcial.
+  await Promise.allSettled(originalAffected.map(m=>sb.from('dds_qa_smo_metrics').upsert({id:m.id,section:m.section,name:m.name,units:m.units,target:String(m.target??''),owner:m.owner,sort_order:m.sort_order||0,values:{...(m.values||{})},updated_at:new Date().toISOString()},{onConflict:'id'})));
+  await sb.from('dds_qa_smo_config').upsert({id:'main',dates,updated_at:new Date().toISOString()},{onConflict:'id'});
+  showToast('No se pudo completar la eliminación del día. Se restauraron los datos en pantalla y se intentó revertir la nube. '+(e.message||e),'error');
+ }
+}
 function exportCSV(){const ds=dates;const rows=[['Sección','Métrica','Unidad','Objetivo','Responsable',...ds]];for(const m of metrics)rows.push([m.section==='daily'?'Daily Metrics':'Weekly Metrics',m.name,m.units,m.target,m.owner,...ds.map(d=>m.values?.[d]??'')]);const csv='\ufeff'+rows.map(row=>row.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\r\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='DDS_QA_SMO_'+isoToday()+'.csv';a.click();URL.revokeObjectURL(a.href);}
 async function loadRemote(){
  try{
@@ -766,10 +763,10 @@ async function loadRemote(){
     const next={id:r.id,section:r.section||'daily',name:r.name||'',units:r.units||'',target:r.target??'',owner:r.owner||'',sort_order:r.sort_order||0,values:r.values||{}};
     if(existing>=0)metrics[existing]=next;else metrics.push(next);
     metrics.sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));renderTable();
-  }).on('postgres_changes',{event:'UPDATE',schema:'public',table:'dds_qa_smo_config'},payload=>{if(payload.new?.updated_at&&(!lastUpdatedAt||payload.new.updated_at>lastUpdatedAt)){lastUpdatedAt=payload.new.updated_at;updateLastUpdated();}if(payload.new?.dates?.length){dates=payload.new.dates;positionAtToday();renderTable();}}).subscribe();
+  }).on('postgres_changes',{event:'*',schema:'public',table:'dds_qa_smo_config'},payload=>{if(payload.new?.updated_at&&(!lastUpdatedAt||payload.new.updated_at>lastUpdatedAt)){lastUpdatedAt=payload.new.updated_at;updateLastUpdated();}if(payload.new?.dates?.length){dates=payload.new.dates;positionAtToday();renderTable();}}).subscribe();
  }catch(e){console.error(e);setStatus('Sin conexión · configuración pendiente','bad');showToast('No se pudo conectar con Supabase. Ejecuta primero el archivo setup_supabase.sql en el SQL Editor del proyecto y recarga. Detalle: '+(e.message||e),'error');}
 }
-$('addDayTop').addEventListener('click',addDay);$('addMetricDaily').addEventListener('click',()=>addMetric('daily'));$('addMetricWeekly').addEventListener('click',()=>addMetric('weekly'));$('prevDays').addEventListener('click',()=>{offset=Math.max(0,offset-PAGE_DAYS);renderTable();});$('nextDays').addEventListener('click',()=>{offset=Math.min(Math.max(0,dates.length-PAGE_DAYS),offset+PAGE_DAYS);renderTable();});$('todayBtn').addEventListener('click',()=>{positionAtToday();renderTable();});$('exportBtn').addEventListener('click',exportCSV);
+$('addDayTop').addEventListener('click',addDay);$('removeDayTop').addEventListener('click',openDeleteDayDialog);$('addMetricDaily').addEventListener('click',()=>addMetric('daily'));$('addMetricWeekly').addEventListener('click',()=>addMetric('weekly'));$('prevDays').addEventListener('click',()=>{offset=Math.max(0,offset-PAGE_DAYS);renderTable();});$('nextDays').addEventListener('click',()=>{offset=Math.min(Math.max(0,dates.length-PAGE_DAYS),offset+PAGE_DAYS);renderTable();});$('todayBtn').addEventListener('click',()=>{positionAtToday();renderTable();});$('jumpDate').addEventListener('change',e=>{const index=dates.indexOf(e.target.value);if(index>=0){offset=Math.min(index,Math.max(0,dates.length-PAGE_DAYS));renderTable();$('jumpDate').value=e.target.value;}});$('exportBtn').addEventListener('click',exportCSV);
 positionAtToday();renderTable();loadRemote();
 </script>
 
@@ -1192,4 +1189,36 @@ body.qa-smo-homologated > header#mainHeader.qa-smo-reference-header .qa-smo-hidd
 #scorecardFixed thead th input,#scorecard thead th input,#scorecardFixed thead th select,#scorecard thead th select{color:#FFFFFF!important;background:#244665!important;border-color:rgba(255,255,255,.35)!important}
 #scorecardFixed thead th input::placeholder,#scorecard thead th input::placeholder{color:#DCE8F5!important}
 </style>
+
+<style id="smo-dds-scorecard-single-table-fix-v1">
+#tableWrap{display:block!important;position:relative!important;width:100%!important;max-width:100%!important;height:66vh!important;min-height:280px!important;max-height:720px!important;overflow:auto!important;overscroll-behavior:contain!important;isolation:isolate!important;scrollbar-gutter:stable!important;-webkit-overflow-scrolling:touch!important;background:#fff!important;border-top:1px solid #e5eaf0!important}
+#scorecard{display:table!important;border-collapse:separate!important;border-spacing:0!important;table-layout:fixed!important;width:max-content!important;min-width:100%!important;margin:0!important;font-size:12px!important}
+#scorecard th,#scorecard td{box-sizing:border-box!important;height:42px!important;min-height:42px!important;padding:6px!important;vertical-align:middle!important;white-space:nowrap!important;border-right:1px solid #edf0f3!important;border-bottom:1px solid #e8ebef!important;background:#fff!important}
+#scorecard thead th{position:sticky!important;top:0!important;z-index:40!important;height:52px!important;min-height:52px!important;background:#17365E!important;color:#fff!important;text-align:center!important}
+#scorecard thead th .th-label,#scorecard thead th small{color:#fff!important}
+#scorecard thead th .th-filter{color:#fff!important;background:#ffffff18!important;border-color:#ffffff50!important}
+#scorecard th:nth-child(1),#scorecard td:nth-child(1){position:sticky!important;left:0!important;width:235px!important;min-width:235px!important;max-width:235px!important;z-index:25!important;background:#fff!important}
+#scorecard th:nth-child(2),#scorecard td:nth-child(2){position:sticky!important;left:235px!important;width:72px!important;min-width:72px!important;max-width:72px!important;z-index:25!important;background:#fff!important}
+#scorecard th:nth-child(3),#scorecard td:nth-child(3){position:sticky!important;left:307px!important;width:90px!important;min-width:90px!important;max-width:90px!important;z-index:25!important;background:#fff!important}
+#scorecard th:nth-child(4),#scorecard td:nth-child(4){position:sticky!important;left:397px!important;width:145px!important;min-width:145px!important;max-width:145px!important;z-index:25!important;background:#fff!important;box-shadow:3px 0 6px rgba(38,54,74,.10)!important}
+#scorecard thead th:nth-child(-n+4){z-index:55!important;background:#17365E!important}
+#scorecard tbody tr:hover td:nth-child(-n+4){background:#f7f9fc!important}
+#scorecard td.metric-cell,#scorecard th.date-head{width:112px!important;min-width:112px!important;max-width:112px!important}
+#scorecard .section-row td{height:44px!important;min-height:44px!important;background:#FCEFF1!important}
+#scorecard .section-row td:first-child{position:sticky!important;left:0!important;width:542px!important;min-width:542px!important;max-width:542px!important;z-index:32!important;background:#FCEFF1!important;box-shadow:3px 0 6px rgba(38,54,74,.06)!important}
+#scorecard .section-row td.section-date-spacer{width:112px!important;min-width:112px!important;max-width:112px!important}
+#scorecard .section-action{float:right!important}
+#scorecard .metric-edit-wrap{display:flex!important;align-items:center!important;gap:3px!important;width:100%!important;min-width:0!important}
+#scorecard .metric-edit-wrap .metric-name{flex:1 1 auto!important;width:0!important;min-width:0!important;max-width:100%!important}
+#scorecard .metric-action-btn{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 25px!important;width:25px!important;min-width:25px!important;height:27px!important;min-height:27px!important;padding:0!important;border-radius:6px!important;font-size:15px!important;line-height:1!important}
+#scorecard .metric-duplicate-btn{background:#edf3f8!important;color:#40566d!important;border:1px solid #d7e2ec!important}
+#scorecard .metric-delete-btn{background:#fff0f1!important;color:#a40022!important;border:1px solid #ffd1d8!important;font-weight:900!important}
+.date-nav{gap:7px!important}#jumpDate{width:145px!important;max-width:145px!important;min-height:36px!important;font-size:11px!important}
+#removeDayTop{background:#fff0f1!important;color:#a40022!important;border:1px solid #ffd1d8!important}
+.modal-actions{display:flex!important;justify-content:flex-end!important;gap:8px!important;flex-wrap:wrap!important;margin-top:18px!important}
+.delete-day-warning{padding:9px 11px!important;border-radius:8px!important;background:#fff7e8!important;color:#805400!important;font-weight:700!important}
+@media(max-width:900px){#scorecard th:nth-child(1),#scorecard td:nth-child(1){left:0!important;width:190px!important;min-width:190px!important;max-width:190px!important}#scorecard th:nth-child(2),#scorecard td:nth-child(2){left:190px!important;width:72px!important;min-width:72px!important;max-width:72px!important}#scorecard th:nth-child(3),#scorecard td:nth-child(3){left:262px!important;width:90px!important;min-width:90px!important;max-width:90px!important}#scorecard th:nth-child(4),#scorecard td:nth-child(4){left:352px!important;width:145px!important;min-width:145px!important;max-width:145px!important}#scorecard .section-row td:first-child{width:497px!important;min-width:497px!important;max-width:497px!important}}
+@media(max-width:640px){#tableWrap{height:62vh!important;min-height:250px!important}.panel-tools{align-items:stretch!important}.date-nav{width:100%!important}#jumpDate{flex:1 1 130px!important;max-width:none!important}.panel-tools>button{flex:1 1 auto!important}}
+</style>
+
 </body></html>
