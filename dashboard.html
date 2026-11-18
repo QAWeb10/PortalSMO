@@ -205,13 +205,9 @@
 .filtros-grid{
   display:grid;
   grid-template-columns:
-    1.2fr   /* Persona */
-    .8fr    /* Fecha inicio */
-    .8fr    /* Fecha fin */
-    1.1fr   /* Clasificación */
-    1.2fr   /* Hallazgo */
-    1fr     /* Área */
-    1fr;    /* Cuadrilla */
+    minmax(150px,1.25fr) /* Persona */
+    repeat(2,minmax(115px,.85fr)) /* Fechas */
+    repeat(3,minmax(130px,1fr)); /* Clasificación, hallazgo y área */
 
   gap:10px;
   align-items:end;
@@ -1004,14 +1000,17 @@
   }
 
 .heat-cell{
-  min-height:24px;
+  min-height:28px;
   display:flex;
   align-items:center;
   justify-content:center;
-  border-right:1px solid #fff;
-  border-bottom:1px solid #fff;
-  font-size:7px;
-  font-weight:700;
+  border-right:1px solid rgba(255,255,255,.92);
+  border-bottom:1px solid rgba(255,255,255,.92);
+  font-size:10px;
+  line-height:1.15;
+  font-weight:800;
+  text-shadow:none;
+  box-sizing:border-box;
 }
 
   .heat-head{
@@ -1105,7 +1104,8 @@
 
 .heatmap-modal .heat-cell{
   min-height:42px;
-  font-size:12px;
+  font-size:13px;
+  font-weight:850;
 }
 
 .heatmap-modal .heat-head{
@@ -2277,6 +2277,153 @@ header.qa-unified-header,header.appbar.qa-unified-header,#mainHeader.qa-unified-
 @media(max-width:620px){header.qa-unified-header,header.appbar.qa-unified-header,#mainHeader.qa-unified-header{min-height:0!important;padding:11px 12px!important}.qa-unified-header .logo{width:38px!important;height:38px!important;flex-basis:38px!important}.qa-unified-header .t1{font-size:8px!important}.qa-unified-header .t2{font-size:16px!important}.qa-unified-header .qa-unified-nav{gap:5px!important}.qa-unified-header .qa-unified-nav a{font-size:9px!important;min-height:30px!important;padding:6px 8px!important}.qa-unified-header .badge{font-size:9px!important}.qa-unified-header .update-box,.qa-unified-header .qa-header-update{min-width:90px!important;padding:6px 8px!important}}
 </style>
 
+
+<style id="fix-filtros-sobre-graficas">
+/* FIX: los desplegables de filtros deben quedar por encima de las gráficas.
+   Las gráficas usan backdrop-filter, que crea contextos de apilamiento propios. */
+main.wrap > .row-1{
+  position:relative !important;
+  z-index:100 !important;
+}
+main.wrap > .row-1 > .card:first-child{
+  position:relative !important;
+  z-index:101 !important;
+  overflow:visible !important;
+}
+main.wrap > .row-1 .multi-field{
+  position:relative !important;
+  z-index:102 !important;
+}
+main.wrap > .row-1 .multi-select{
+  position:relative !important;
+}
+main.wrap > .row-1 .multi-select.open{
+  z-index:103 !important;
+}
+main.wrap > .row-1 .multi-dropdown{
+  z-index:104 !important;
+}
+main.wrap > .charts-grid,
+main.wrap > .transport-grid,
+main.wrap > .transport-dashboard{
+  position:relative;
+  z-index:1;
+}
+</style>
+
+
+<style id="fix-contraste-semaforo-modal-y-graficas">
+/* Hallazgos por área: valores blancos, legibles sobre barras oscuras. */
+#grafAreas{color:#fff!important}
+
+/* Semáforo: fondos suficientemente oscuros y tipografía blanca. */
+.semaforo-card .criticidad-card{
+  color:#FFFFFF!important;
+  border:1px solid rgba(255,255,255,.20)!important;
+  box-shadow:0 8px 18px rgba(0,0,0,.22)!important;
+}
+.semaforo-card .criticidad-card.critico{
+  background:#8F1717!important;
+}
+.semaforo-card .criticidad-card.mayor{
+  background:#A94708!important;
+}
+.semaforo-card .criticidad-card.menor{
+  background:#176B38!important;
+}
+.semaforo-card .criticidad-card.score{
+  background:#18324F!important;
+}
+.semaforo-card .criticidad-label,
+.semaforo-card .criticidad-value,
+.semaforo-card .criticidad-sub,
+.semaforo-card .risk-score-inline-number,
+.semaforo-card .risk-score-inline-percent,
+.semaforo-card .risk-score-inline-title{
+  color:#FFFFFF!important;
+  text-shadow:0 1px 3px rgba(0,0,0,.45)!important;
+}
+.semaforo-card .criticidad-card::before{
+  height:4px!important;
+  background:rgba(255,255,255,.8)!important;
+}
+
+/* Etiquetas de estado del Risk Score: tonos intensos, texto blanco. */
+.semaforo-card .risk-score-excelente{
+  background:#176B38!important;
+  color:#FFFFFF!important;
+}
+.semaforo-card .risk-score-atencion{
+  background:#986000!important;
+  color:#FFFFFF!important;
+}
+.semaforo-card .risk-score-riesgo{
+  background:#8F1717!important;
+  color:#FFFFFF!important;
+}
+
+/* Ventana de ampliar: fondo oscuro completo, no blanco. */
+.heatmap-modal{
+  background:rgba(2,8,18,.88)!important;
+  backdrop-filter:blur(5px)!important;
+  -webkit-backdrop-filter:blur(5px)!important;
+}
+.heatmap-modal-content{
+  background:#102238!important;
+  color:#FFFFFF!important;
+  border:1px solid rgba(255,255,255,.20)!important;
+  box-shadow:0 24px 60px rgba(0,0,0,.55)!important;
+}
+.heatmap-modal-content h3,
+.heatmap-modal-content h4,
+.heatmap-modal-content .heatmap-title,
+.heatmap-modal-content label{
+  color:#FFFFFF!important;
+}
+.heatmap-modal .heatmap{
+  border-color:rgba(255,255,255,.20)!important;
+}
+.heatmap-modal .heat-cell{
+  border-right-color:rgba(255,255,255,.14)!important;
+  border-bottom-color:rgba(255,255,255,.14)!important;
+}
+.heatmap-modal .heat-head,
+.heatmap-modal .heat-label{
+  background:#203A57!important;
+  color:#FFFFFF!important;
+}
+.heatmap-modal .heat-0{
+  background:#26394D!important;
+  color:#FFFFFF!important;
+}
+.heatmap-modal .heat-1{
+  background:#66551D!important;
+  color:#FFFFFF!important;
+}
+.heatmap-modal .heat-2{
+  background:#9A6A16!important;
+  color:#FFFFFF!important;
+}
+.heatmap-modal .heat-3{
+  background:#C44D0B!important;
+  color:#FFFFFF!important;
+}
+.heatmap-modal .heat-4{
+  background:#8F1717!important;
+  color:#FFFFFF!important;
+}
+.heatmap-expand,
+.heatmap-close{
+  background:#203A57!important;
+  color:#FFFFFF!important;
+  border:1px solid rgba(255,255,255,.24)!important;
+}
+.heatmap-expand:hover,
+.heatmap-close:hover{
+  background:#315575!important;
+}
+</style>
+
 </head>
 <body class="qa-smo-homologated">
 
@@ -2365,21 +2512,6 @@ header.qa-unified-header,header.appbar.qa-unified-header,#mainHeader.qa-unified-
 </div>
 <div class="multi-dropdown">
 <div id="areaOpciones"></div>
-</div>
-</div>
-</div>
-<div class="field multi-field">
-<label>Cuadrilla</label>
-<div class="multi-select" id="cuadrillaSelect">
-<div class="multi-select-box" onclick="abrirMulti('cuadrilla')">
-<span id="cuadrillaTexto">
-        Todas las cuadrillas
-      </span>
-<span class="multi-arrow">▼</span>
-</div>
-<div class="multi-dropdown">
-<input class="multi-search" id="cuadrillaBusqueda" oninput="buscarMulti('cuadrilla')" placeholder="Buscar cuadrilla..." type="text"/>
-<div id="cuadrillaOpciones"></div>
 </div>
 </div>
 </div>
@@ -2914,8 +3046,7 @@ const selecciones = {
   persona:new Set(),
   clasificacion:new Set(),
   hallazgo:new Set(),
-  area:new Set(),
-  cuadrilla:new Set()
+  area:new Set()
 
 };
 
@@ -3300,8 +3431,7 @@ const tipos = [
   "persona",
   "clasificacion",
   "hallazgo",
-  "area",
-  "cuadrilla"
+  "area"
 ];
 
     tipos.forEach(t=>{
@@ -3391,13 +3521,7 @@ const tipos = [
     );
 
   }
-
-  renderOpciones(
-  "cuadrilla",
-  valoresUnicos("cuadrilla")
-);
-
-  /* =========================================================
+/* =========================================================
     RENDER OPCIONES
   ========================================================= */
 
@@ -3544,10 +3668,7 @@ const textos = {
     "Todos los hallazgos",
 
   area:
-    "Todas las áreas",
-
-  cuadrilla:
-    "Todas las cuadrillas"
+    "Todas las áreas"
 
 };
 
@@ -3783,10 +3904,7 @@ if(selector){
     const areas =
       obtenerSeleccionados("area");
 
-const cuadrillas =
-  obtenerSeleccionados("cuadrilla");
-
-    const inicioInput =
+const inicioInput =
       document.getElementById("inicio");
 
 
@@ -3889,21 +4007,7 @@ const cuadrillas =
             return false;
           }
 
-if(
-  cuadrillas.length > 0 &&
-  !cuadrillas.includes(
-    normalizar(
-      obtenerCampo(
-        registro,
-        "cuadrilla"
-      )
-    )
-  )
-){
-  return false;
-}
-
-          const fecha =
+const fecha =
             obtenerFechaRegistro(
               registro
             );
@@ -4031,13 +4135,7 @@ if(
       document.getElementById(
         "hallazgoBusqueda"
       );
-
-      const cuadrillaBusqueda =
-  document.getElementById(
-    "cuadrillaBusqueda"
-  );
-
-    if(personaBusqueda){
+if(personaBusqueda){
       personaBusqueda.value = "";
     }
 
@@ -4045,12 +4143,7 @@ if(
     if(hallazgoBusqueda){
       hallazgoBusqueda.value = "";
     }
-
-    if(cuadrillaBusqueda){
-  cuadrillaBusqueda.value = "";
-}
-
-    inicializarMultiselects();
+inicializarMultiselects();
 
 
     datosFiltrados =
@@ -5154,7 +5247,7 @@ if(
               borderRadius:6,
 
   datalabels:{
-    color:"#555",
+    color:"#FFFFFF",
     anchor:"end",
     align:"right",
     offset:4,
@@ -7797,37 +7890,92 @@ body.qa-smo-homologated > header#mainHeader.qa-smo-reference-header .qa-smo-hidd
 
 <style id="qa-chart-white-text-v6">
 /* Solo color blanco para textos de gráficas; conserva tamaño y grosor originales. */
+
+/* Alineación uniforme de los seis filtros restantes */
+main.wrap > .row-1 > .card:first-child .card-body{
+  padding:16px !important;
+}
+main.wrap > .row-1 > .card:first-child .filtros-grid{
+  display:grid !important;
+  grid-template-columns:minmax(150px,1.25fr) repeat(2,minmax(115px,.85fr)) repeat(3,minmax(130px,1fr)) !important;
+  gap:12px !important;
+  align-items:end !important;
+}
+main.wrap > .row-1 > .card:first-child .filtros-grid > .field{
+  min-width:0 !important;
+  width:100% !important;
+  align-self:end !important;
+}
+main.wrap > .row-1 > .card:first-child .filtros-grid > .field label{
+  min-height:12px;
+  line-height:12px;
+  margin-bottom:6px !important;
+}
+main.wrap > .row-1 > .card:first-child .filtros-grid input,
+main.wrap > .row-1 > .card:first-child .filtros-grid select,
+main.wrap > .row-1 > .card:first-child .filtros-grid .multi-select-box{
+  width:100% !important;
+  height:42px !important;
+  min-height:42px !important;
+  box-sizing:border-box !important;
+}
+@media(max-width:1200px){
+  main.wrap > .row-1 > .card:first-child .filtros-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+  }
+}
+@media(max-width:700px){
+  main.wrap > .row-1 > .card:first-child .filtros-grid{
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+}
 </style>
-<script id="qa-chart-white-text-v6-behavior">
+<style id="qa-heatmap-and-chart-contrast-v8">
+/* Texto blanco en todas las gráficas; el mapa cambia a fondos oscuros para conservar contraste. */
+.chart-card *, .chart-container *, .chart-panel *, .graph-card *, .grafica-card *, .heatmap-card *{
+  color:#FFFFFF!important;
+}
+.chart-card svg text,.chart-container svg text,.chart-panel svg text,.graph-card svg text,.grafica-card svg text,.heatmap-card svg text{
+  fill:#FFFFFF!important;
+}
+.chart-card .heatmap .heat-cell,.heatmap-card .heatmap .heat-cell{
+  color:#FFFFFF!important;text-shadow:0 1px 2px rgba(0,0,0,.65)!important;
+  border-color:rgba(255,255,255,.18)!important;
+}
+.chart-card .heatmap .heat-head,.chart-card .heatmap .heat-label,
+.heatmap-card .heatmap .heat-head,.heatmap-card .heatmap .heat-label{
+  color:#FFFFFF!important;background:#18324F!important;
+}
+.chart-card .heatmap .heat-0,.heatmap-card .heatmap .heat-0{color:#FFFFFF!important;background:#263B55!important}
+.chart-card .heatmap .heat-1,.heatmap-card .heatmap .heat-1{color:#FFFFFF!important;background:#35536F!important}
+.chart-card .heatmap .heat-2,.heatmap-card .heatmap .heat-2{color:#FFFFFF!important;background:#8A4B12!important}
+.chart-card .heatmap .heat-3,.heatmap-card .heatmap .heat-3{color:#FFFFFF!important;background:#D94F08!important}
+.chart-card .heatmap .heat-4,.heatmap-card .heatmap .heat-4{color:#FFFFFF!important;background:#A10A04!important}
+.heatmap-modal .heatmap .heat-head,.heatmap-modal .heatmap .heat-label{color:#FFFFFF!important;background:#18324F!important}
+.heatmap-modal .heatmap .heat-0{color:#FFFFFF!important;background:#263B55!important}
+.heatmap-modal .heatmap .heat-1{color:#FFFFFF!important;background:#35536F!important}
+.heatmap-modal .heatmap .heat-2{color:#FFFFFF!important;background:#8A4B12!important}
+.heatmap-modal .heatmap .heat-3{color:#FFFFFF!important;background:#D94F08!important}
+.heatmap-modal .heatmap .heat-4{color:#FFFFFF!important;background:#A10A04!important}
+</style>
+<script id="qa-chart-readable-text-v7-behavior">
 (function(){
   if(!window.Chart) return;
-  var white='#FFFFFF';
-  function setWhite(chart){
-    try{
-      var o=chart.options||(chart.options={});
-      o.plugins=o.plugins||{};
-      o.plugins.legend=o.plugins.legend||{};
-      o.plugins.legend.labels=o.plugins.legend.labels||{};
-      o.plugins.legend.labels.color=white;
-      if(o.plugins.datalabels){o.plugins.datalabels.color=white;}
-      if(o.scales){Object.keys(o.scales).forEach(function(k){
-        var sc=o.scales[k]||{};sc.ticks=sc.ticks||{};sc.ticks.color=white;
-        if(sc.title) sc.title.color=white;
-      });}
-      if(o.plugins.title) o.plugins.title.color=white;
-      if(o.plugins.subtitle) o.plugins.subtitle.color=white;
-    }catch(e){}
+  var WHITE='#FFFFFF';
+  function asColor(value){
+    if(Array.isArray(value)) value=value[0];
+    if(typeof value!=='string') return null;
+    value=value.trim();
+    var m=value.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+    if(m){var h=m[1];if(h.length===3)h=h.split('').map(function(c){return c+c;}).join('');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
+    m=value.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+    if(m)return [Number(m[1]),Number(m[2]),Number(m[3])];
+    return null;
   }
-  try{
-    Chart.defaults.color=white;
-    Chart.defaults.plugins=Chart.defaults.plugins||{};
-    Chart.defaults.plugins.legend=Chart.defaults.plugins.legend||{};
-    Chart.defaults.plugins.legend.labels=Chart.defaults.plugins.legend.labels||{};
-    Chart.defaults.plugins.legend.labels.color=white;
-    if(Chart.defaults.plugins.datalabels) Chart.defaults.plugins.datalabels.color=white;
-    Chart.register({id:'qaWhiteChartTextV6',beforeUpdate:function(chart){setWhite(chart);}});
-    Object.values(Chart.instances||{}).forEach(function(chart){setWhite(chart);chart.update('none');});
-  }catch(e){}
+  function isLight(value){var rgb=asColor(value);if(!rgb)return null;var c=rgb.map(function(v){v/=255;return v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4);});return (.2126*c[0]+.7152*c[1]+.0722*c[2])>.48;}
+  function labelColor(ctx){return WHITE;}
+  function setReadable(chart){try{var o=chart.options||(chart.options={});o.plugins=o.plugins||{};o.plugins.legend=o.plugins.legend||{};o.plugins.legend.labels=o.plugins.legend.labels||{};o.plugins.legend.labels.color=WHITE;o.plugins.datalabels=o.plugins.datalabels||{};o.plugins.datalabels.color=labelColor;if(o.scales)Object.keys(o.scales).forEach(function(k){var sc=o.scales[k]||{};sc.ticks=sc.ticks||{};sc.ticks.color='#EAF1FA';if(sc.title)sc.title.color='#EAF1FA';});if(o.plugins.title)o.plugins.title.color=WHITE;if(o.plugins.subtitle)o.plugins.subtitle.color='#D3DEEB';}catch(e){}}
+  try{Chart.defaults.color='#EAF1FA';Chart.defaults.plugins=Chart.defaults.plugins||{};Chart.defaults.plugins.legend=Chart.defaults.plugins.legend||{};Chart.defaults.plugins.legend.labels=Chart.defaults.plugins.legend.labels||{};Chart.defaults.plugins.legend.labels.color=WHITE;Chart.defaults.plugins.datalabels=Chart.defaults.plugins.datalabels||{};Chart.defaults.plugins.datalabels.color=labelColor;Chart.register({id:'qaReadableChartTextV7',beforeUpdate:function(chart){setReadable(chart);}});Object.values(Chart.instances||{}).forEach(function(chart){setReadable(chart);chart.update('none');});}catch(e){}
 })();
 </script>
 </body>
