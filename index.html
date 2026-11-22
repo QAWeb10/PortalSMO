@@ -1644,6 +1644,7 @@ INGRESAR
           </span>
           <span class="home-arrow">›</span>
         </button>
+<button id="btnAuditoriasEmbarques" class="home-card home-auditoria" style="display:none" onclick="location.href='Auditorías embarques.html'" aria-label="Abrir auditorías de embarques"><span class="home-card-icon" aria-hidden="true">🚚</span><span class="home-card-text"><span class="tituloBoton">Auditorías de embarques</span><span class="subtituloBoton">Auditorías y papeletas de embarque</span></span><span class="home-arrow" aria-hidden="true">›</span></button>
 
         <button id="btnIncidencia" class="home-card home-incidencia" onclick="location.href='Incidencia en Recibo.html'">
           <span class="home-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 4.5 2.8 18a1.7 1.7 0 0 0 1.5 2.5h15.4a1.7 1.7 0 0 0 1.5-2.5L13.7 4.5a2 2 0 0 0-3.4 0Z"/><path d="M12 9v5m0 3h.01"/></svg></span>
@@ -2999,5 +3000,20 @@ html.smo-session-pending body:has(#loginBox:not(.hidden))::before,html.smo-sessi
 #homeBox .home-header-actions button.home-logout{background:rgba(255,255,255,.14)!important;border:1px solid rgba(255,255,255,.42)!important}
 #homeBox .home-header-actions button.home-logout:hover{background:rgba(255,255,255,.24)!important;color:#FFFFFF!important}
 </style>
+<script id="smo-home-embarques-permisos">(function(){
+const original=window.mostrarHome;
+if(typeof original!=='function')return;
+window.mostrarHome=function(usuario){
+ const result=original.apply(this,arguments);
+ const info=typeof personal==='object'?personal[usuario]:null;
+ const area=String(info?.area||'').trim().toUpperCase();
+ const permitido=!!info&&(info.admin===true||area==='CALIDAD'||area==='OPERACIONES');
+ const boton=document.getElementById('btnAuditoriasEmbarques');
+ if(boton)boton.style.display=permitido?'grid':'none';
+ return result;
+};
+const actual=localStorage.getItem('usuarioPortal');
+if(actual&&typeof personal==='object'&&personal[actual])window.mostrarHome(actual);
+})();</script>
 </body>
 </html>
