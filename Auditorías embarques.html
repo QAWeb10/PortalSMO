@@ -2878,7 +2878,14 @@ const CHECK_PREGUNTAS={"unidad": {"Limpieza del piso": "¿El piso se encuentra l
 let patioRows=[], prioridadRows=[], unidades=[], audit=null, stream=null, cameraTarget="", facing="environment", reportRows=[];
 let saveTimer=null, photoQueue=[];
 const $=id=>document.getElementById(id);
-const isAdmin=()=>{try{return localStorage.getItem("adminPortal")==="true";}catch(e){return false;}};
+// El index del Portal de Calidad define el perfil de administrador en adminPortal.
+// sesionActiva.datos no incluye la propiedad admin en la versión vigente del index.
+// Este control limita la interfaz; el servidor debe validar independientemente el borrado.
+const isAdmin=()=>{try{
+  const sesion=JSON.parse(localStorage.getItem("sesionActiva")||"null");
+  const usuario=String(localStorage.getItem("usuarioPortal")||"").trim();
+  return localStorage.getItem("adminPortal")==="true" && !!usuario && !!sesion?.datos?.nombre && String(sesion.datos.nombre).trim()===usuario;
+}catch(e){return false;}};
 const areaSesion=()=>{try{const sesion=JSON.parse(localStorage.getItem("sesionActiva")||"{}");return String(sesion?.datos?.area||"").trim().toUpperCase();}catch(e){return "";}};
 const isOperaciones=()=>areaSesion()==="OPERACIONES";
 const puedeAuditar=()=>isAdmin()||areaSesion()==="CALIDAD";
@@ -2943,7 +2950,7 @@ async function procesarExcel(tipo,file,guardarCompartido){
         SHIPMENT:col(["SHIPMENT"],1),
         CARRIER:col(["CARRIER","CARRIER MOVE ID"],1),
         CARRIER_ID:col(["CARRIER ID","ID CARRIER"],1),
-        COLUMNA_J:col(["LINEA","LÍNEA","LINE"],8),
+        COLUMNA_J:col(["COLUMNA J","MODALIDAD","TIPO MODAL","TRANSPORTE MODAL"],9),
         UE:col(["UE","UNIDAD DE ENVIO","UNIDAD DE ENVÍO","SHIPMENT"],1),
         DATO_PDF:col(["G/P"],3),
         CLIENTE:col(["CLIENTE","CUSTOMER"],6),
@@ -3018,6 +3025,20 @@ async function iniciarAuditoria(i){
   renderAudit();irVista("auditoria");
   if(!x.prioridad)toast("Auditoría iniciada sin lista de prioridades; puedes guardar los avances.");
   consultarRequisitos();scheduleSave();
+}
+function sincronizarDatosAuditoriaConExcel(){
+  if(!audit||!prioridadRows.length)return false;
+  const claves=[audit.datos?.ue,audit.datos?.unidad].map(v=>normalizarClaveCruce(v).flex).filter(Boolean);
+  const nuevo=prioridadRows.find(r=>[r.UE,r.SHIPMENT,r.CARRIER].some(v=>claves.includes(normalizarClaveCruce(v).flex)));
+  if(!nuevo)return false;
+  Object.assign(audit.datos,{
+    ue:nuevo.UE||audit.datos.ue||"",
+    cliente:nuevo.CLIENTE||"",omp:nuevo.OMP||"",
+    tipo:nuevo["TIPO DE EMBARQUE"]||nuevo.SHIPMENT||"",
+    linea:nuevo.LINEA||"",teorica:nuevo.TEORICA||"",
+    columna_j:nuevo.COLUMNA_J||"",granel_flag:nuevo.GRANEL_FLAG||""
+  });
+  return true;
 }
 function renderAudit(){
   $("folioAuditoria").textContent=audit.id.slice(0,8).toUpperCase();
@@ -3125,6 +3146,7 @@ async function obtenerMaestro(cliente,tipo,omp,valorColJ,valorColE){
 }
 async function consultarRequisitos(ompManual){
   if(!audit)return;
+  sincronizarDatosAuditoriaConExcel();
   const omp=String(ompManual||audit.datos.omp||"").trim();
   
   $("requisitosEstado").textContent="Consultando catálogo…";
@@ -3144,6 +3166,7 @@ async function consultarRequisitos(ompManual){
     }
     scheduleSave();
   }catch(e){
+    audit.reqMaestro=null;
     $("requisitosEstado").textContent="Error al consultar";
     $("requisitosPanel").innerHTML=`<div class="warning">${esc(e.message)}</div>`;
     const diag=null;if(diag)diag.textContent="No se pudo completar la consulta. Intenta nuevamente.";
@@ -3181,10 +3204,12 @@ async function buscarPapeletaUE(){
   if(!pr&&rel?.prioridad)pr=rel.prioridad;
   if(pr&&!rel)rel=unidades.find(x=>x.prioridad===pr||igualUE(x.patio["CARRIER MOVE ID"]));
   if(pr&&rel&&!rel.prioridad)rel.prioridad=pr;
-  if(!rel||!pr){box.innerHTML=`<div class="warning">${!prioridadRows.length?"No se pudo recuperar el Excel 2 compartido.":!pr?"Esta UE no aparece en los datos leídos del Excel 2.":"La UE aparece en Excel 2, pero no se encontró su puerta en Excel 1."} Registros cargados: Puertas ${patioRows.length}, Prioridades ${prioridadRows.length}.</div>`;return;}
+  if(!pr){box.innerHTML=`<div class="warning">${!prioridadRows.length?"No se pudo recuperar el Excel 2 compartido.":!pr?"Esta UE no aparece en los datos leídos del Excel 2.":"La UE aparece en Excel 2, pero no se encontró su puerta en Excel 1."} Registros cargados: Puertas ${patioRows.length}, Prioridades ${prioridadRows.length}.</div>`;return;}
   try{
     const maestro=await obtenerMaestro(pr.CLIENTE,pr["TIPO DE EMBARQUE"]||pr.SHIPMENT,pr.OMP,pr.COLUMNA_J,pr.GRANEL_FLAG);
-    papeletaSeleccionada={patio:rel.patio,prioridad:pr,maestro};
+    // Excel 2 es suficiente para imprimir; Excel 1 solo complementa datos.
+    const patio=rel?.patio||patioRows.find(x=>igualUE(x["CARRIER MOVE ID"])||igualUE(x["CARRIER ID"]))||{};
+    papeletaSeleccionada={patio,prioridad:pr,maestro};
     const d=papeletaSeleccionada;
     box.innerHTML=`<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><small style="color:#78899a;font-weight:800">UNIDAD DE ENVÍO</small><div class="papeleta-ue">${esc(pr.UE)}</div></div><div><small style="color:#78899a;font-weight:800">CLIENTE</small><div style="font-size:17px;font-weight:900">${esc(pr.CLIENTE||"—")}</div></div></div>
       <div class="info-grid"><div class="info-field"><span>Cortina</span><strong>${esc(d.patio["YARD LOCATION"]||"—")}</strong></div><div class="info-field"><span>Carrier ID (Excel 1, columna B)</span><strong>${esc(d.patio["CARRIER ID"]||"—")}</strong></div><div class="info-field"><span>Teórica</span><strong>${esc(pr.TEORICA||"—")}</strong></div><div class="info-field"><span>OMP</span><strong>${esc(pr.OMP||"—")}</strong></div><div class="info-field"><span>Tipo de embarque (Excel 2, columna B)</span><strong>${esc(pr["TIPO DE EMBARQUE"]||"—")}</strong></div><div class="info-field"><span>Indicador GRANEL (Excel 2, columna E)</span><strong>${esc(pr.GRANEL_FLAG||"—")}</strong></div></div>
@@ -3207,11 +3232,11 @@ function generarPapeletaPDF(){
       return lines;
     };
     const centeredField=(x,y,w,label,value)=>{
-      doc.setFillColor(250,250,250);doc.setDrawColor(...line);doc.setLineWidth(.25);doc.roundedRect(x,y,w,14,1.5,1.5,"FD");
-      text(label,x+w/2,y+4.2,6.2,true,w-4,mid,"center");
+      doc.setFillColor(250,250,250);doc.setDrawColor(...line);doc.setLineWidth(.25);doc.roundedRect(x,y,w,11.5,1.5,1.5,"FD");
+      text(label,x+w/2,y+3.2,5.8,true,w-4,mid,"center");
       let size=9.5;doc.setFont("helvetica","bold");
       while(size>6.5&&doc.getTextWidth(String(value??"—"))>w-7)size-=.5;
-      text(value,x+w/2,y+10.8,size,true,w-6,ink,"center");
+      text(value,x+w/2,y+8.8,size,true,w-6,ink,"center");
     };
     const check=(x,y,label)=>{
       doc.setDrawColor(70,76,82);doc.setLineWidth(.3);doc.rect(x,y-3,3.5,3.5);
@@ -3244,11 +3269,11 @@ function generarPapeletaPDF(){
       ["TEÓRICA",sel.prioridad.TEORICA||"—"],
       ["OMP",sel.prioridad.OMP||"—"]
     ];
-    const fw=89,fg=4;fields.forEach((f,i)=>centeredField(left+(i%2)*(fw+fg),88+Math.floor(i/2)*16,fw,f[0],f[1]));
-    centeredField(left,120,182,"TIPO DE EMBARQUE",sel.prioridad["TIPO DE EMBARQUE"]||"—");
+    const fw=89,fg=4;fields.forEach((f,i)=>centeredField(left+(i%2)*(fw+fg),85+Math.floor(i/2)*12.5,fw,f[0],f[1]));
+    centeredField(left,111,182,"TIPO DE EMBARQUE",sel.prioridad["TIPO DE EMBARQUE"]||"—");
 
-    doc.setFillColor(...pale);doc.setDrawColor(...ink);doc.setLineWidth(.45);doc.roundedRect(left,139,182,10,1.5,1.5,"FD");
-    text("CHECK LIST OPL 19",105,146,10.5,true,174,ink,"center");
+    doc.setFillColor(...pale);doc.setDrawColor(...ink);doc.setLineWidth(.45);doc.roundedRect(left,126,182,10,1.5,1.5,"FD");
+    text("CHECK LIST OPL 19",105,133,10.5,true,174,ink,"center");
 
     const r=sel.maestro||{},entries=[];
     const add=(label,value)=>{if(String(value||"").trim())entries.push({label,value:String(value).trim()});};
@@ -3256,7 +3281,7 @@ function generarPapeletaPDF(){
     String(r.requerimientos||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean).forEach((v,i)=>add("REQUERIMIENTO "+(i+1),v));
     (r.aditamentos||[]).forEach((v,i)=>add("ADITAMENTO "+(i+1),v));
     if(!entries.length)entries.push({label:"CATÁLOGO",value:"Sin requerimientos configurados para esta OMP o para el cliente en general."});
-    const availableTop=153, availableBottom=229;
+    const availableTop=139, availableBottom=213;
     const valueWidth=124;
     const calculate=(size,pad)=>{
       doc.setFont("helvetica","normal");doc.setFontSize(size);
@@ -3297,13 +3322,17 @@ function generarPapeletaPDF(){
       doc.line(left,y+height,right,y+height);
       y+=height;
     }
-    const fy=233;
+    const fy=217;
     doc.setDrawColor(...line);doc.setLineWidth(.3);doc.line(left,fy,right,fy);
     text("TOTAL DE TARIMAS:",left,fy+6.5,7.5,true,60,ink);doc.line(76,fy+7.5,145,fy+7.5);
     text("OBSERVACIONES:",left,fy+14,7.5,true,75,ink);
     doc.setDrawColor(...line);doc.roundedRect(left,fy+17,182,12,1,1);
-    doc.setDrawColor(...ink);doc.setLineWidth(.35);doc.line(124,fy+34,right,fy+34);
-    text("FIRMA DE MONTACARGUISTA",160,fy+37.5,6,true,70,mid,"center");
+    // Dos espacios de firma manual, sin afectar el pie de página ni generar otra hoja.
+    doc.setDrawColor(...ink);doc.setLineWidth(.35);
+    doc.line(18,263,99,263);
+    doc.line(111,263,192,263);
+    text("FIRMA DE MONTACARGUISTA",58.5,267,6,true,80,mid,"center");
+    text("FIRMA DEL COORDINADOR DE OPERACIONES",151.5,267,5.7,true,85,mid,"center");
     doc.setDrawColor(...line);doc.setLineWidth(.2);doc.line(left,273,right,273);
     text("Rev. 20",77,276,6.2,false,25,ink,"center");
     text("Ref. PR-OP-1715-1220-083",116,276,6.2,false,65,ink,"center");
@@ -3565,7 +3594,7 @@ async function operacionLocal(modo,valor){const db=await dbLocal();return new Pr
 const guardarBorradorLocal=a=>operacionLocal("guardar",structuredClone(a));
 const eliminarBorradorLocal=id=>operacionLocal("borrar",id);
 const listarBorradoresLocales=()=>operacionLocal("listar");
-async function abrirBorradorLocal(id){const a=await operacionLocal("leer",id);if(!a)return toast("No se encontró el borrador local.");audit=a;renderAudit();irVista("auditoria");$("estadoGuardado").textContent="Borrador recuperado del dispositivo";}
+async function abrirBorradorLocal(id){const a=await operacionLocal("leer",id);if(!a)return toast("No se encontró el borrador local.");audit=a;if(!prioridadRows.length&&navigator.onLine)await cargarProgramacionCompartida();sincronizarDatosAuditoriaConExcel();renderAudit();irVista("auditoria");consultarRequisitos();$("estadoGuardado").textContent="Borrador recuperado del dispositivo";}
 async function sincronizarPendientes(){if(!navigator.onLine)return;const borradores=await listarBorradoresLocales().catch(()=>[]);if(audit&&borradores.some(a=>a.id===audit.id)){await guardarAhora();return;}if(borradores.length)toast("Hay borradores locales pendientes. Entra a Continuar auditoría para sincronizarlos.");}
 window.addEventListener("online",sincronizarPendientes);
 function scheduleSave(){if(!audit||audit.estado==="FINALIZADA")return;$("estadoGuardado").textContent="Guardando en dispositivo…";guardarBorradorLocal(audit).catch(()=>{});clearTimeout(saveTimer);if(navigator.onLine)saveTimer=setTimeout(guardarAhora,1800);else $("estadoGuardado").textContent="Sin conexión · pendiente de sincronizar";}
@@ -3611,7 +3640,7 @@ async function eliminarAuditoria(id){
     toast("Auditoría eliminada correctamente.");await cargarAbiertas();
   }catch(e){toast("No se pudo eliminar: "+e.message);}
 }
-async function abrirAuditoria(id){try{const {data,error}=await sb.from(TABLE).select("*").eq("id",id).single();if(error)throw error;const p=data.payload||{};audit={id:data.id,estado:data.estado,auditor:data.auditor,datos:data.datos||{},unidad:p.unidad||{},embarque:p.embarque||{},reqMaestro:p.reqMaestro||null,aditamentos:p.aditamentos||{},hallazgos:p.hallazgos||[],fotos:p.fotos||{unidad:[],embarque:[]},observaciones:p.observaciones||""};for(const k of ["unidad","embarque"])for(const f of audit.fotos[k]||[])if(f.url&&!f.data)f.data=f.url;for(const h of audit.hallazgos)for(const f of h.fotos||[])if(f.url&&!f.data)f.data=f.url;const nuevo=prioridadRows.find(r=>normalizarClaveCruce(r.UE||r.SHIPMENT||r.CARRIER).flex===normalizarClaveCruce(audit.datos.unidad).flex);if(nuevo){audit.datos.cliente=audit.datos.cliente||nuevo.CLIENTE||"";audit.datos.omp=audit.datos.omp||nuevo.OMP||"";audit.datos.linea=audit.datos.linea||nuevo.LINEA||"";audit.datos.teorica=audit.datos.teorica||nuevo.TEORICA||"";audit.datos.columna_j=audit.datos.columna_j||nuevo.COLUMNA_J||"";}renderAudit();irVista("auditoria");consultarRequisitos();}
+async function abrirAuditoria(id){try{const {data,error}=await sb.from(TABLE).select("*").eq("id",id).single();if(error)throw error;const p=data.payload||{};audit={id:data.id,estado:data.estado,auditor:data.auditor,datos:data.datos||{},unidad:p.unidad||{},embarque:p.embarque||{},reqMaestro:p.reqMaestro||null,aditamentos:p.aditamentos||{},hallazgos:p.hallazgos||[],fotos:p.fotos||{unidad:[],embarque:[]},observaciones:p.observaciones||""};for(const k of ["unidad","embarque"])for(const f of audit.fotos[k]||[])if(f.url&&!f.data)f.data=f.url;for(const h of audit.hallazgos)for(const f of h.fotos||[])if(f.url&&!f.data)f.data=f.url;if(!prioridadRows.length)await cargarProgramacionCompartida();sincronizarDatosAuditoriaConExcel();renderAudit();irVista("auditoria");consultarRequisitos();}
 catch(e){toast("No se pudo abrir: "+e.message);}}
 async function finalizarAuditoria(){
   if(!audit)return;
@@ -3758,7 +3787,7 @@ const path=decodeURIComponent(location.pathname.split('/').pop()||'index.html'),
 try{user=localStorage.getItem('usuarioPortal')||'';allowed=localStorage.getItem('adminPortal')==='true'||localStorage.getItem('permisoDashboards')==='true';guest=localStorage.getItem('tipoUsuario')==='INVITADO';}catch(e){}
 const sesionEmbarques=(()=>{try{return JSON.parse(localStorage.getItem('sesionActiva')||'{}')}catch(e){return {}}})();
 const areaEmbarques=String(sesionEmbarques?.datos?.area||'').trim().toUpperCase();
-const adminEmbarques=localStorage.getItem('adminPortal')==='true'||sesionEmbarques?.datos?.admin===true;
+const adminEmbarques=isAdmin();
 const accesoEmbarques=!!(user&&!guest&&(adminEmbarques||areaEmbarques==='CALIDAD'||areaEmbarques==='OPERACIONES'));
 const current=ITEMS.find(x=>x.href.toLowerCase()===path.toLowerCase()),canSeeDash=!!(!guest&&(adminEmbarques||(user&&allowed))),canSeePanel=canSeeDash||accesoEmbarques;
 if(current&&current.embarques&&!accesoEmbarques){location.replace('index.html');return;}
