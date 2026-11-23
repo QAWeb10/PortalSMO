@@ -2684,7 +2684,7 @@ body.qa-dialog-open{overflow:hidden}.qa-dialog{width:min(560px,100%);max-height:
 
 <main class="wrap" id="vistaHome">
   <section class="card" style="margin-top:22px">
-    <div class="card-head"><h2><span class="section-number">QA</span> Auditorías embarques</h2><small>Panel principal</small></div>
+    <div class="card-head"><h2><span class="section-number">QA</span> Auditorías embarques</h2><button class="btn btn-secondary btn-small" onclick="mostrarMenuPrincipal()">Menú de opciones</button></div>
     <div class="card-body">
       <p style="color:#667085;line-height:1.6;margin:0 0 18px">Sistema de inspección de unidades y condiciones de embarque. Los avances se guardan automáticamente para continuar en otro turno.</p>
       <div class="home-stats" id="homeStats"></div>
@@ -2695,7 +2695,7 @@ body.qa-dialog-open{overflow:hidden}.qa-dialog{width:min(560px,100%);max-height:
 
 <main class="wrap hidden smo-modern-view smo-programacion" id="vistaNueva">
   <section class="card">
-    <div class="card-head"><h2>Archivos de programación</h2></div>
+    <div class="card-head"><h2>Programación de embarques</h2><button type="button" class="btn btn-secondary btn-small" onclick="mostrarMenuPrincipal()">← Menú</button></div>
     <div class="card-body">
       <div class="upload-grid smo-program-files">
         <div class="upload-box"><span class="smo-upload-tag">FUENTE 01 · PUERTAS</span><input id="excelPatio" type="file" accept=".xlsx,.xls" onchange="leerExcel('patio',this.files[0])"><div id="estadoPatio" class="file-status empty">Sin archivo</div><small id="metaPatio" class="file-meta">Archivo compartido: consultando…</small></div>
@@ -2837,7 +2837,7 @@ body.qa-dialog-open{overflow:hidden}.qa-dialog{width:min(560px,100%);max-height:
       <h2>AUDITORÍAS EMBARQUES</h2>
     </div>
     <div class="auditorias-inicio-body">
-      <button type="button" data-acceso="auditoria" class="btn btn-primary auditorias-inicio-btn hidden" onclick="irVista('nueva'); return false;">NUEVA AUDITORÍA</button>
+      <button type="button" data-acceso="auditoria" class="btn btn-secondary auditorias-inicio-btn hidden" onclick="irVista('nueva'); return false;">PROGRAMACIÓN Y NUEVA AUDITORÍA</button>
       <button type="button" data-acceso="auditoria" class="btn btn-secondary auditorias-inicio-btn hidden" onclick="irVista('continuar'); return false;">CONTINUAR AUDITORÍA</button>
       <button type="button" data-acceso="auditoria" class="btn btn-secondary auditorias-inicio-btn hidden" onclick="irVista('reportes'); return false;">REPORTES</button>
       <button type="button" id="btnAccesoRequisitos" class="btn btn-secondary auditorias-inicio-btn hidden" onclick="irVista('requisitos'); return false;">REQUERIMIENTOS ESPECIALES</button>
@@ -2890,6 +2890,7 @@ const userName=()=>{try{const x=localStorage.getItem("usuarioPortal")||"";if(x)r
 const uid=()=>crypto.randomUUID?crypto.randomUUID():("xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{let r=Math.random()*16|0;return(c==="x"?r:(r&3|8)).toString(16)}));
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function toast(msg){$("toast").textContent=msg;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2600);}
+function mostrarMenuPrincipal(){const o=$("auditoriasInicioOverlay");if(o){o.classList.remove("hidden");o.setAttribute("aria-hidden","false");}}
 function ocultarMenuPrincipal(){const overlay=$("auditoriasInicioOverlay");if(overlay){overlay.classList.add("hidden");overlay.setAttribute("aria-hidden","true");}}
 function irVista(v){
   if(v==="requisitos"&&!isAdmin()){toast("Acceso reservado al administrador.");return;}
@@ -2933,14 +2934,27 @@ async function procesarExcel(tipo,file,guardarCompartido){
       if(matrix.length<2)throw Error("El archivo de Prioridades debe incluir encabezados y al menos un registro.");
       const headers=matrix[0].map(x=>normalizarHeader(x)), hmap={};headers.forEach((h,i)=>{if(h)hmap[h]=i;});
       const col=(aliases,fallback)=>{for(const a of aliases){const k=normalizarHeader(a);if(hmap[k]!==undefined)return hmap[k];}return fallback;};
-      const ix={
+      const formatoShipment= hmap["SHIPMENT"]!==undefined && hmap["CLIENTE"]!==undefined && hmap["OMP"]!==undefined;
+      const ix=formatoShipment?{
+        TIPO:col(["C","TIPO DE EMBARQUE","TIPO EMBARQUE"],0),
+        SHIPMENT:col(["SHIPMENT"],1),
+        CARRIER:col(["CARRIER","CARRIER MOVE ID"],1),
+        CARRIER_ID:col(["CARRIER ID","ID CARRIER"],1),
+        COLUMNA_J:col(["LINEA","LÍNEA","LINE"],8),
+        UE:col(["UE","UNIDAD DE ENVIO","UNIDAD DE ENVÍO","SHIPMENT"],1),
+        DATO_PDF:col(["G/P"],3),
+        CLIENTE:col(["CLIENTE","CUSTOMER"],6),
+        LINEA:col(["LINEA","LÍNEA","LINE"],8),
+        TEORICA:col(["FECHA TEORICA DE EMBARQUE","FECHA TEÓRICA DE EMBARQUE","TEORICA","TEÓRICA"],9),
+        OMP:col(["OMP","NUMERO OMP","NÚMERO OMP"],20)
+      }:{
         TIPO:col(["TIPO DE EMBARQUE","TIPO EMBARQUE","SHIPMENT TYPE","TIPO"],null),
         SHIPMENT:col(["SHIPMENT","SHIPMENT ID","SHIPMENT NUMBER"],null),
         CARRIER:col(["CARRIER","CARRIER MOVE ID"],2),
         CARRIER_ID:col(["CARRIER ID","ID CARRIER"],1),
-        COLUMNA_J:9, // Columna J física de Excel 2: contiene las claves MODAL.
-        UE:2, // Identificador de búsqueda en Excel 2, columna C; conservar texto y ceros iniciales.
-        DATO_PDF:4, // Dato adicional de Excel 2, columna E; se imprime arriba a la derecha, sin llamarlo UE.
+        COLUMNA_J:9,
+        UE:col(["UE","UNIDAD DE ENVIO","UNIDAD DE ENVÍO","UNIDAD ENVIO","SHIPPING UNIT","SHIPPING UNIT ID"],3),
+        DATO_PDF:4,
         CLIENTE:col(["CLIENTE","CUSTOMER"],7),
         LINEA:col(["LINEA","LÍNEA","LINE"],9),
         TEORICA:col(["TEORICA","TEÓRICA","THEORETICAL"],10),
@@ -2950,7 +2964,7 @@ async function procesarExcel(tipo,file,guardarCompartido){
       prioridadRows=matrix.slice(1).map(row=>({
         "TIPO DE EMBARQUE":val(row,ix.TIPO),SHIPMENT:val(row,ix.SHIPMENT),
         CARRIER:val(row,ix.CARRIER),"CARRIER ID":val(row,ix.CARRIER_ID),
-        UE:val(row,ix.UE),DATO_PDF:val(row,ix.DATO_PDF),GRANEL_FLAG:val(row,ix.DATO_PDF),CLIENTE:val(row,ix.CLIENTE),LINEA:val(row,ix.LINEA),COLUMNA_J:val(row,ix.COLUMNA_J),
+        UE:val(row,ix.UE),DATO_PDF:val(row,ix.DATO_PDF),GRANEL_FLAG:formatoShipment?val(row,3):val(row,ix.DATO_PDF),CLIENTE:val(row,ix.CLIENTE),LINEA:val(row,ix.LINEA),COLUMNA_J:val(row,ix.COLUMNA_J),
         TEORICA:val(row,ix.TEORICA),OMP:val(row,ix.OMP)
       })).filter(r=>Object.values(r).some(v=>v!==""));
       if(!prioridadRows.length)throw Error("No se encontraron registros de embarque en Excel 2.");
@@ -2969,7 +2983,7 @@ function normalizarClaveCruce(v){
 function relacionarArchivos(){
   const exactIndex=new Map(),flexIndex=new Map();
   prioridadRows.forEach(r=>{
-    const k=normalizarClaveCruce(r.SHIPMENT||r.CARRIER);
+    const k=normalizarClaveCruce(r.UE||r.SHIPMENT||r.CARRIER);
     if(k.exact&&!exactIndex.has(k.exact))exactIndex.set(k.exact,r);
     if(k.flex&&!flexIndex.has(k.flex))flexIndex.set(k.flex,r);
   });
@@ -2982,11 +2996,15 @@ function relacionarArchivos(){
   $("coincidencias").textContent=`Relación completada: ${matched} coincidencias de ${unidades.length} puertas. ${unidades.length-matched} sin coincidencia.`;
   renderUnidades(unidades);
 }
-function filtrarUnidades(){const q=normalizarHeader($("buscarUnidad").value);if(!q){renderUnidades(unidades);return;}renderUnidades(unidades.filter(x=>normalizarHeader(x.patio["CARRIER MOVE ID"]).includes(q)||normalizarHeader(x.patio["YARD LOCATION"]).includes(q)||normalizarHeader(x.prioridad?.CLIENTE).includes(q)));}
-function renderUnidades(rows){$("listaUnidades").innerHTML=rows.slice(0,250).map((x)=>`<button class="unit-row unit-row-grid" onclick="iniciarAuditoria(${unidades.indexOf(x)})"><span><b>${esc(x.patio["YARD LOCATION"]||"—")}</b></span><span><b>${esc(x.patio["CARRIER MOVE ID"]||"—")}</b></span><span>${esc(x.prioridad?.CLIENTE||"—")}</span></button>`).join("")||'<div class="muted">No hay puertas DOOR para mostrar.</div>';}
+function filtrarUnidades(){const q=normalizarHeader($("buscarUnidad").value);if(!q){renderUnidades(unidades);return;}renderUnidades(unidades.filter(x=>normalizarHeader(x.patio["CARRIER MOVE ID"]).includes(q)||normalizarHeader(x.patio["YARD LOCATION"]).includes(q)||normalizarHeader(x.prioridad?.CLIENTE).includes(q)||normalizarHeader(x.prioridad?.UE).includes(q)));}
+function renderUnidades(rows){rows=[...rows].sort((a,b)=>{const get=x=>String(x.patio["YARD LOCATION"]||"");return get(a).localeCompare(get(b),"es",{numeric:true,sensitivity:"base"});});$("listaUnidades").innerHTML=rows.slice(0,250).map((x)=>`<button class="unit-row unit-row-grid" onclick="iniciarAuditoria(${unidades.indexOf(x)})"><span><b>${esc(x.patio["YARD LOCATION"]||"—")}</b></span><span><b>${esc(x.patio["CARRIER MOVE ID"]||"—")}</b></span><span>${esc(x.prioridad?.CLIENTE||"—")}</span></button>`).join("")||'<div class="muted">No hay puertas DOOR para mostrar.</div>';}
 async function iniciarAuditoria(i){
   const x=unidades[i];if(!x)return;
+  if(!x.prioridad){toast("Esta unidad no tiene coincidencia en Prioridades.");return;}
   const p=x.prioridad||{};
+  if(!navigator.onLine){toast("Para iniciar una auditoría nueva se necesita conexión. Puedes continuar un borrador local.");return;}
+  const ueKey=normalizarClaveCruce(x.patio["CARRIER MOVE ID"]).flex;
+  try{const {data,error}=await sb.from(TABLE).select("id,estado,datos").in("estado",["BORRADOR","EN PROCESO","FINALIZADA"]).limit(1000);if(error)throw error;const existente=(data||[]).find(r=>normalizarClaveCruce(r.datos?.unidad).flex===ueKey);if(existente){if(existente.estado==="FINALIZADA"){toast("Esta UE ya tiene una auditoría finalizada. Consulta Reportes.");return;}toast("Esta UE ya tiene una auditoría abierta. Se abrirá el registro existente.");await abrirAuditoria(existente.id);return;}}catch(e){toast("No se pudo verificar si esta UE ya fue auditada. Intenta de nuevo.");return;}
   audit={id:uid(),estado:"BORRADOR",created_at:new Date().toISOString(),auditor:userName(),datos:{
     cortina:x.patio["YARD LOCATION"]||"",unidad:x.patio["CARRIER MOVE ID"]||"",
     omp:p.OMP||"",tipo:p["TIPO DE EMBARQUE"]||p.SHIPMENT||"",
@@ -3027,7 +3045,7 @@ function renderPhotos(){["unidad","embarque"].forEach(k=>{$("fotos"+(k==="unidad
 function abrirCamara(target){cameraTarget=target;facing="environment";iniciarStream();}
 async function iniciarStream(){try{stream?.getTracks().forEach(t=>t.stop());stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing},width:{ideal:1600}},audio:false});$("cameraVideo").srcObject=stream;$("cameraOverlay").classList.add("show");$("cameraError").textContent="";}catch(e){$("cameraError").textContent="No fue posible abrir la cámara. Verifica permisos y usa HTTPS.";}}
 async function cambiarCamara(){facing=facing==="environment"?"user":"environment";await iniciarStream();}
-function capturarFoto(){const v=$("cameraVideo");if(!v.videoWidth)return;const c=document.createElement("canvas");const scale=Math.min(1,1280/v.videoWidth);c.width=Math.round(v.videoWidth*scale);c.height=Math.round(v.videoHeight*scale);c.getContext("2d").drawImage(v,0,0,c.width,c.height);const data=c.toDataURL("image/jpeg",.78);if(cameraTarget.startsWith("hallazgo:")){const id=cameraTarget.split(":")[1];const h=audit.hallazgos.find(x=>x.id===id);if(h){h.fotos=h.fotos||[];h.fotos.push({data,nombre:`hallazgo_${Date.now()}.jpg`});renderHallazgos();}}else{audit.fotos[cameraTarget].push({data,nombre:`${cameraTarget}_${Date.now()}.jpg`});renderPhotos();}cerrarCamara();scheduleSave();}
+function capturarFoto(){if(cameraTarget.startsWith("hallazgo:")){const h=audit?.hallazgos?.find(x=>x.id===cameraTarget.split(":")[1]);if((h?.fotos||[]).length>=4){toast("Máximo 4 fotografías por hallazgo.");return;}}const v=$("cameraVideo");if(!v.videoWidth)return;const c=document.createElement("canvas");const scale=Math.min(1,960/v.videoWidth);c.width=Math.round(v.videoWidth*scale);c.height=Math.round(v.videoHeight*scale);c.getContext("2d").drawImage(v,0,0,c.width,c.height);const data=c.toDataURL("image/jpeg",.68);if(cameraTarget.startsWith("hallazgo:")){const id=cameraTarget.split(":")[1];const h=audit.hallazgos.find(x=>x.id===id);if(h){h.fotos=h.fotos||[];h.fotos.push({data,nombre:`hallazgo_${Date.now()}.jpg`});renderHallazgos();}}else{audit.fotos[cameraTarget].push({data,nombre:`${cameraTarget}_${Date.now()}.jpg`});renderPhotos();}cerrarCamara();scheduleSave();}
 function cerrarCamara(){$("cameraOverlay").classList.remove("show");stream?.getTracks().forEach(t=>t.stop());stream=null;}
 function eliminarFoto(k,i){audit.fotos[k].splice(i,1);renderPhotos();scheduleSave();}
 function separarAlturaTarima(valor){
@@ -3148,21 +3166,22 @@ function claveCatalogo(tipo,token){return "CATALOGO|"+encodeURIComponent(String(
 let papeletaSeleccionada=null;
 async function buscarPapeletaUE(){
   if(!puedeImprimirPapeleta())return toast("No tienes permiso para imprimir papeletas.");
+  if(!patioRows.length||!prioridadRows.length){
+    await cargarProgramacionCompartida();
+  }
   const buscada=normalizarClaveCruce($("buscarUEPapeleta").value);
   const q=buscada.exact;
   const box=$("resultadoBusquedaPapeleta"),btn=$("btnGenerarPapeleta");
   papeletaSeleccionada=null;btn.disabled=true;box.classList.remove("hidden");
   if(!q){box.innerHTML='<div class="warning">Escribe una UE para buscar.</div>';return;}
-  // Primero coincidencia literal (conserva 00); como respaldo acepta el mismo valor sin ceros iniciales.
-  const pr=prioridadRows.find(r=>normalizarClaveCruce(r.UE).exact===q)
-    ||prioridadRows.find(r=>normalizarClaveCruce(r.UE).flex===buscada.flex);
-  if(!pr){box.innerHTML='<div class="warning">No se encontró esa UE en el Excel 2. Verifica que ambos Excel estén cargados.</div>';return;}
-  let rel=unidades.find(x=>x.prioridad===pr);
-  if(!rel){
-    const key=normalizarClaveCruce(pr.SHIPMENT||pr.CARRIER);
-    rel=unidades.find(x=>{const k=normalizarClaveCruce(x.patio["CARRIER MOVE ID"]);return k.exact===key.exact||k.flex===key.flex;});
-  }
-  if(!rel){box.innerHTML='<div class="warning">La UE existe en Excel 2, pero no se encontró su registro relacionado en Excel 1. No se generó la papeleta para evitar datos incompletos.</div>';return;}
+  // La tabla de unidades y la papeleta utilizan el mismo vínculo ya calculado.
+  const igualUE=v=>{const k=normalizarClaveCruce(v);return !!k.exact&&(k.exact===buscada.exact||k.flex===buscada.flex);};
+  let pr=prioridadRows.find(r=>igualUE(r.UE)||igualUE(r.SHIPMENT));
+  let rel=unidades.find(x=>igualUE(x.patio["CARRIER MOVE ID"])||igualUE(x.prioridad?.UE));
+  if(!pr&&rel?.prioridad)pr=rel.prioridad;
+  if(pr&&!rel)rel=unidades.find(x=>x.prioridad===pr||igualUE(x.patio["CARRIER MOVE ID"]));
+  if(pr&&rel&&!rel.prioridad)rel.prioridad=pr;
+  if(!rel||!pr){box.innerHTML=`<div class="warning">${!prioridadRows.length?"No se pudo recuperar el Excel 2 compartido.":!pr?"Esta UE no aparece en los datos leídos del Excel 2.":"La UE aparece en Excel 2, pero no se encontró su puerta en Excel 1."} Registros cargados: Puertas ${patioRows.length}, Prioridades ${prioridadRows.length}.</div>`;return;}
   try{
     const maestro=await obtenerMaestro(pr.CLIENTE,pr["TIPO DE EMBARQUE"]||pr.SHIPMENT,pr.OMP,pr.COLUMNA_J,pr.GRANEL_FLAG);
     papeletaSeleccionada={patio:rel.patio,prioridad:pr,maestro};
@@ -3259,7 +3278,7 @@ function generarPapeletaPDF(){
     text("OBSERVACIONES:",left,257,8,true,75,ink);doc.setDrawColor(...line);doc.roundedRect(left,261,182,14,1,1);
     doc.setDrawColor(...ink);doc.setLineWidth(.4);doc.line(122,283,right,283);
     text("FIRMA DE MONTACARGUISTA",159,288,6.8,true,74,mid,"center");
-    doc.save(`Caratula_DHL_SC_${String(sel.prioridad.DATO_PDF||"referencia").replace(/[^A-Za-z0-9_-]/g,"_")}.pdf`);
+    doc.save(`Carátula UE ${String(sel.prioridad.UE||sel.prioridad.DATO_PDF||"SIN_UE").replace(/[^A-Za-z0-9_-]/g,"_")}.pdf`);
   }catch(e){toast("No se pudo generar la papeleta: "+e.message);}
 }
 async function cargarCatalogoRequisitos(){
@@ -3508,11 +3527,20 @@ function eliminarHallazgo(id){const h=audit.hallazgos.find(x=>x.id===id);audit.h
 function eliminarFotoHallazgo(id,i){const h=audit.hallazgos.find(x=>x.id===id);h.fotos.splice(i,1);renderHallazgos();scheduleSave();}
 function cambioCampo(k,v){audit.observaciones=v;scheduleSave();}
 function updateResult(){const hs=audit?.hallazgos||[];const critical=hs.some(x=>x.clasificacion==="CRÍTICO");const minor=hs.some(x=>["MAYOR","MENOR","OBSERVACIÓN"].includes(x.clasificacion));$("resultadoEstimado").textContent=critical?"RECHAZADO":minor?"LIBERADO CON OBSERVACIÓN":"LIBERADO";$("resultadoEstimado").className="result-banner "+(critical?"rejected":minor?"warning":"released");}
-function scheduleSave(){if(!audit)return;$("estadoGuardado").textContent="Cambios pendientes…";clearTimeout(saveTimer);saveTimer=setTimeout(guardarAhora,900);}
+const LOCAL_DB="qa_smo_embarques_borradores_v1";
+function dbLocal(){return new Promise((resolve,reject)=>{const req=indexedDB.open(LOCAL_DB,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains("auditorias"))req.result.createObjectStore("auditorias",{keyPath:"id"});};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
+async function operacionLocal(modo,valor){const db=await dbLocal();return new Promise((resolve,reject)=>{const tx=db.transaction("auditorias",modo==="leer"||modo==="listar"?"readonly":"readwrite");const store=tx.objectStore("auditorias");const req=modo==="guardar"?store.put(valor):modo==="borrar"?store.delete(valor):modo==="leer"?store.get(valor):store.getAll();req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);tx.oncomplete=()=>db.close();});}
+const guardarBorradorLocal=a=>operacionLocal("guardar",structuredClone(a));
+const eliminarBorradorLocal=id=>operacionLocal("borrar",id);
+const listarBorradoresLocales=()=>operacionLocal("listar");
+async function abrirBorradorLocal(id){const a=await operacionLocal("leer",id);if(!a)return toast("No se encontró el borrador local.");audit=a;renderAudit();irVista("auditoria");$("estadoGuardado").textContent="Borrador recuperado del dispositivo";}
+async function sincronizarPendientes(){if(!navigator.onLine)return;const borradores=await listarBorradoresLocales().catch(()=>[]);if(audit&&borradores.some(a=>a.id===audit.id)){await guardarAhora();return;}if(borradores.length)toast("Hay borradores locales pendientes. Entra a Continuar auditoría para sincronizarlos.");}
+window.addEventListener("online",sincronizarPendientes);
+function scheduleSave(){if(!audit)return;$("estadoGuardado").textContent="Guardando en dispositivo…";guardarBorradorLocal(audit).catch(()=>{});clearTimeout(saveTimer);if(navigator.onLine)saveTimer=setTimeout(guardarAhora,1800);else $("estadoGuardado").textContent="Sin conexión · pendiente de sincronizar";}
 async function subirFotos(){const upload=async(p,path)=>{if(!p.data)return;const blob=await(await fetch(p.data)).blob();const {error}=await sb.storage.from(BUCKET).upload(path,blob,{contentType:"image/jpeg",upsert:true});if(error)throw error;p.url=sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;delete p.data;};for(const k of ["unidad","embarque"]){for(const p of audit.fotos[k]||[])await upload(p,`${audit.id}/${k}/${uid()}.jpg`);}for(const h of audit.hallazgos){for(const p of h.fotos||[])await upload(p,`${audit.id}/hallazgos/${h.id}_${uid()}.jpg`);}}
 function payload(){return {datos:audit.datos,unidad:audit.unidad,embarque:audit.embarque,reqMaestro:audit.reqMaestro||null,aditamentos:audit.aditamentos,hallazgos:audit.hallazgos,fotos:audit.fotos,observaciones:audit.observaciones};}
-async function guardarAhora(){if(!audit)return;clearTimeout(saveTimer);try{$("estadoGuardado").textContent="Guardando…";await subirFotos();const row={id:audit.id,estado:audit.estado==="BORRADOR"?"BORRADOR":"EN PROCESO",datos:payload().datos,auditor:audit.auditor||userName(),payload:payload(),updated_at:new Date().toISOString()};const {error}=await sb.from(TABLE).upsert(row,{onConflict:"id"});if(error)throw error;audit.estado=row.estado==="BORRADOR"?"EN PROCESO":row.estado;$("estadoGuardado").textContent="Guardado · "+new Date().toLocaleTimeString();}catch(e){$("estadoGuardado").textContent="Error al guardar";toast("No se pudo guardar: "+e.message);}}
-async function cargarAbiertas(){const el=$("listaAbiertas");el.innerHTML="Cargando registros…";try{const {data,error}=await sb.from(TABLE).select("id,estado,datos,auditor,updated_at").in("estado",["BORRADOR","EN PROCESO"]).order("updated_at",{ascending:false});if(error)throw error;el.innerHTML=(data||[]).map(r=>`<div class="open-row"><span><b>${esc(r.datos?.unidad||r.id)}</b><small>Cortina: ${esc(r.datos?.cortina||"—")} · Cliente: ${esc(r.datos?.cliente||"—")} · Unidad de envío: ${esc(r.datos?.unidad||"—")} · OMP ${esc(r.datos?.omp||"")} · Último usuario: ${esc(r.auditor||"")} · ${new Date(r.updated_at).toLocaleString()}</small></span><span class="match-pill">${esc(r.estado)}</span><button class="btn btn-primary btn-small" onclick="abrirAuditoria('${r.id}')">Abrir / continuar</button>${isAdmin()?`<button class="btn btn-secondary btn-small" onclick="eliminarAuditoria('${r.id}')">Eliminar</button>`:""}</div>`).join("")||'<div class="muted">No hay auditorías abiertas.</div>';}catch(e){el.innerHTML=`<div class="warning">Error: ${esc(e.message)}. Verifica la conexión y los permisos.</div>`;}}
+async function guardarAhora(){if(!audit)return;clearTimeout(saveTimer);const actual=audit;try{await guardarBorradorLocal(actual);if(!navigator.onLine){$("estadoGuardado").textContent="Sin conexión · guardado en dispositivo";return;}$("estadoGuardado").textContent="Sincronizando…";await subirFotos();const row={id:actual.id,estado:actual.estado==="BORRADOR"?"BORRADOR":"EN PROCESO",datos:payload().datos,auditor:actual.auditor||userName(),payload:payload(),updated_at:new Date().toISOString()};const {error}=await sb.from(TABLE).upsert(row,{onConflict:"id"});if(error)throw error;actual.estado=row.estado==="BORRADOR"?"EN PROCESO":row.estado;await eliminarBorradorLocal(actual.id);$("estadoGuardado").textContent="Sincronizado · "+new Date().toLocaleTimeString();}catch(e){$("estadoGuardado").textContent="Guardado local · pendiente de sincronizar";console.warn("Sincronización pendiente",e);}}
+async function cargarAbiertas(){const el=$("listaAbiertas");el.innerHTML="Cargando registros…";try{const {data,error}=await sb.from(TABLE).select("id,estado,datos,auditor,updated_at").in("estado",["BORRADOR","EN PROCESO"]).order("updated_at",{ascending:false});if(error)throw error;el.innerHTML=(data||[]).map(r=>`<div class="open-row"><span><b>${esc(r.datos?.unidad||r.id)}</b><small>Cortina: ${esc(r.datos?.cortina||"—")} · Cliente: ${esc(r.datos?.cliente||"—")} · Unidad de envío: ${esc(r.datos?.unidad||"—")} · OMP ${esc(r.datos?.omp||"")} · Último usuario: ${esc(r.auditor||"")} · ${new Date(r.updated_at).toLocaleString()}</small></span><span class="match-pill">${esc(r.estado)}</span><button class="btn btn-primary btn-small" onclick="abrirAuditoria('${r.id}')">Abrir / continuar</button>${isAdmin()?`<button class="btn btn-secondary btn-small" onclick="eliminarAuditoria('${r.id}')">Eliminar</button>`:""}</div>`).join("")||'<div class="muted">No hay auditorías abiertas.</div>';}catch(e){el.innerHTML=`<div class="warning">Sin conexión. Puedes recuperar borradores guardados en este dispositivo desde el botón de abajo.</div>`;}finally{const locales=await listarBorradoresLocales().catch(()=>[]);if(locales.length)el.insertAdjacentHTML("afterbegin",`<div class="warning">${locales.length} borrador(es) en este dispositivo, pendientes de sincronizar. ${locales.map(r=>`<button class="btn btn-secondary btn-small" onclick="abrirBorradorLocal('${r.id}')">Continuar ${esc(r.datos?.unidad||r.id)}</button>`).join(" ")}</div>`);}}
 async function eliminarAuditoria(id){
   if(!isAdmin())return toast("Solo un administrador puede eliminar auditorías.");
   if(!await qaDialog({title:"Eliminar auditoría",message:"¿Eliminar definitivamente esta auditoría en proceso?",detail:"Esta acción no se puede deshacer.",danger:true,accept:"Eliminar auditoría"}))return;
@@ -3525,9 +3553,79 @@ async function eliminarAuditoria(id){
 }
 async function abrirAuditoria(id){try{const {data,error}=await sb.from(TABLE).select("*").eq("id",id).single();if(error)throw error;const p=data.payload||{};audit={id:data.id,estado:data.estado,auditor:data.auditor,datos:data.datos||{},unidad:p.unidad||{},embarque:p.embarque||{},reqMaestro:p.reqMaestro||null,aditamentos:p.aditamentos||{},hallazgos:p.hallazgos||[],fotos:p.fotos||{unidad:[],embarque:[]},observaciones:p.observaciones||""};for(const k of ["unidad","embarque"])for(const f of audit.fotos[k]||[])if(f.url){try{const r=await fetch(f.url);f.data=URL.createObjectURL(await r.blob());}catch(e){}}for(const h of audit.hallazgos)for(const f of h.fotos||[])if(f.url){try{const r=await fetch(f.url);f.data=URL.createObjectURL(await r.blob());}catch(e){}}renderAudit();irVista("auditoria");consultarRequisitos();}
 catch(e){toast("No se pudo abrir: "+e.message);}}
-async function finalizarAuditoria(){if(!audit)return;const incomplete=[...CHECK_UNIDAD.map(x=>audit.unidad[x]),...CHECK_EMBARQUE.map(x=>audit.embarque[x])].filter(x=>!x?.respuesta);if(incomplete.length&&!await qaDialog({title:"Auditoría con puntos pendientes",message:`Hay ${incomplete.length} puntos sin respuesta. ¿Deseas finalizar de todos modos?`,accept:"Finalizar auditoría"}))return;const invalid=audit.hallazgos.some(h=>!h.clasificacion||!h.descripcion.trim());if(invalid){toast("Completa clasificación y descripción de todos los hallazgos.");return;}try{await subirFotos();const hs=audit.hallazgos;const result=hs.some(x=>x.clasificacion==="CRÍTICO")?"RECHAZADO":hs.some(x=>["MAYOR","MENOR","OBSERVACIÓN"].includes(x.clasificacion))?"LIBERADO CON OBSERVACIÓN":"LIBERADO";const now=new Date();const row={id:audit.id,estado:"FINALIZADA",resultado:result,fecha_cierre:now.toISOString(),auditor:audit.auditor||userName(),datos:audit.datos,payload:payload(),observaciones_finales:audit.observaciones||""};const {error}=await sb.from(TABLE).upsert(row,{onConflict:"id"});if(error)throw error;toast("Auditoría finalizada: "+result);irVista("reportes");}catch(e){toast("No se pudo finalizar: "+e.message);}}
-async function generarPDF(reg=audit){if(!reg)return;const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:"mm",format:"a4"});let y=18;const line=(t,size=9,bold=false)=>{doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(size);const lines=doc.splitTextToSize(String(t??""),178);if(y+lines.length*5>280){doc.addPage();y=18;}doc.text(lines,16,y);y+=lines.length*5+1;};doc.setFillColor(72,9,11);doc.rect(0,0,210,27,"F");doc.setTextColor(255);doc.setFontSize(16);doc.setFont("helvetica","bold");doc.text("QA · AUDITORÍAS EMBARQUES",15,17);doc.setTextColor(30);y=37;line("REPORTE DE AUDITORÍA",13,true);line("Unidad: "+reg.datos.unidad+" | UE: "+(reg.datos.ue||"") + " | OMP: "+reg.datos.omp);line("Cliente: "+reg.datos.cliente+" | Carrier ID: "+(reg.datos.carrier_id||"")+" | Teórica: "+(reg.datos.teorica||"")+" | Línea: "+reg.datos.linea);line("Auditor: "+(reg.auditor||userName()));line("Fecha de cierre: "+(reg.fecha_cierre?new Date(reg.fecha_cierre).toLocaleString():reg.created_at?new Date(reg.created_at).toLocaleString():"—"));line("DATOS GENERALES",11,true);Object.entries(reg.datos).forEach(([k,v])=>line(k.toUpperCase()+": "+v));for(const [title,section] of [["AUDITORÍA DE UNIDAD",reg.unidad],["AUDITORÍA DE EMBARQUE",reg.embarque]]){line(title,11,true);Object.entries(section||{}).forEach(([k,v])=>line(`${k}: ${v.respuesta||"—"}${v.observaciones?" · "+v.observaciones:""}`));}line("REQUERIMIENTOS ESPECIALES",11,true);if(reg.reqMaestro){const rm=reg.reqMaestro;[["PAPELETA",rm.papeleta],["ALTURA MÁXIMA / TARIMA",rm.altura_tarima||rm.altura_maxima||rm.tarima],["ESTIBA",rm.estiba],["REQUERIMIENTOS",rm.requerimientos],["ADITAMENTOS",Array.isArray(rm.aditamentos)?rm.aditamentos.join(", "):rm.aditamentos]].forEach(([k,v])=>{if(v!==null&&v!==undefined&&String(v).trim()!=="")line(k+": "+v);});}else line("Sin requerimientos especiales: no hubo coincidencia MODAL, GRANEL ni Cliente + OMP.");line("ADITAMENTOS",11,true);Object.entries(reg.aditamentos||{}).forEach(([k,v])=>line(k+": "+v));line("HALLAZGOS",11,true);(reg.hallazgos||[]).forEach((h,i)=>{line(`${i+1}. ${h.clasificacion} · ${h.descripcion}`);});line("OBSERVACIONES FINALES",11,true);line(reg.observaciones||"Sin observaciones");const res=reg.resultado||$("resultadoEstimado")?.textContent||"PENDIENTE";line("RESULTADO FINAL: "+res,12,true);const addPhoto=async(url,label)=>{try{let data=url;if(/^https?:/i.test(url)){const response=await fetch(url);if(!response.ok)throw Error("No se pudo leer la imagen");const blob=await response.blob();data=await new Promise((resolve,reject)=>{const fr=new FileReader();fr.onload=()=>resolve(fr.result);fr.onerror=reject;fr.readAsDataURL(blob);});}if(y>225){doc.addPage();y=18;}line(label,9,true);doc.addImage(data,"JPEG",16,y,72,48,undefined,"FAST");y+=52;}catch(e){line(label+" (imagen no disponible en PDF)",8);}};for(const k of ["unidad","embarque"]){for(const ph of reg.fotos?.[k]||[])await addPhoto(ph.data||ph.url,`EVIDENCIA ${k.toUpperCase()}`);}for(const h of reg.hallazgos||[]){for(const ph of h.fotos||[])await addPhoto(ph.data||ph.url,`FOTO DE HALLAZGO · ${h.clasificacion||""}`);}doc.save(`Auditoria_Embarque_${reg.datos.unidad||reg.id}.pdf`);}
-async function cargarReportes(){const box=$("tablaReportes");box.textContent="Consultando…";try{let q=sb.from(TABLE).select("*").eq("estado","FINALIZADA").order("fecha_cierre",{ascending:false});const {data,error}=await q;if(error)throw error;reportRows=(data||[]).filter(r=>{const d=r.datos||{},p=r.payload||{},hs=p.hallazgos||[];const val=(id)=>$(id).value.trim().toLowerCase();const dt=r.fecha_cierre?new Date(r.fecha_cierre):new Date(r.created_at);return(!val("fDesde")||dt>=new Date(val("fDesde")+"T00:00:00"))&&(!val("fHasta")||dt<=new Date(val("fHasta")+"T23:59:59"))&&(!val("fCliente")||String(d.cliente||"").toLowerCase().includes(val("fCliente")))&&(!val("fOmp")||String(d.omp||"").toLowerCase().includes(val("fOmp")))&&(!val("fResultado")||r.resultado===val("fResultado").toUpperCase())&&(!val("fAuditor")||String(r.auditor||"").toLowerCase().includes(val("fAuditor")))&&(!val("fLinea")||String(d.linea||"").toLowerCase().includes(val("fLinea")))&&(!val("fClasificacion")||hs.some(h=>h.clasificacion===val("fClasificacion").toUpperCase()));});renderReportes();}catch(e){box.innerHTML=`<div class="warning">${esc(e.message)}</div>`;}}
+async function finalizarAuditoria(){if(!audit)return;if(!navigator.onLine){await guardarBorradorLocal(audit);toast("Sin conexión: auditoría guardada en el dispositivo. Finaliza cuando vuelva internet.");return;}const incomplete=[...CHECK_UNIDAD.map(x=>audit.unidad[x]),...CHECK_EMBARQUE.map(x=>audit.embarque[x])].filter(x=>!x?.respuesta);if(incomplete.length&&!await qaDialog({title:"Auditoría con puntos pendientes",message:`Hay ${incomplete.length} puntos sin respuesta. ¿Deseas finalizar de todos modos?`,accept:"Finalizar auditoría"}))return;const invalid=audit.hallazgos.some(h=>!h.clasificacion||!h.descripcion.trim());if(invalid){toast("Completa clasificación y descripción de todos los hallazgos.");return;}try{await subirFotos();const hs=audit.hallazgos;const result=hs.some(x=>x.clasificacion==="CRÍTICO")?"RECHAZADO":hs.some(x=>["MAYOR","MENOR","OBSERVACIÓN"].includes(x.clasificacion))?"LIBERADO CON OBSERVACIÓN":"LIBERADO";const now=new Date();const row={id:audit.id,estado:"FINALIZADA",resultado:result,fecha_cierre:now.toISOString(),auditor:audit.auditor||userName(),datos:audit.datos,payload:payload(),observaciones_finales:audit.observaciones||""};const {error}=await sb.from(TABLE).upsert(row,{onConflict:"id"});if(error)throw error;await eliminarBorradorLocal(audit.id);toast("Auditoría finalizada: "+result);irVista("reportes");}catch(e){toast("No se pudo finalizar: "+e.message);}}
+async function generarPDF(reg=audit){
+  if(!reg)return;
+  try{
+    if(!window.jspdf?.jsPDF)throw new Error("No está disponible el generador PDF");
+    const {jsPDF}=window.jspdf,doc=new jsPDF({unit:"mm",format:"a4"});
+    const datos=reg.datos||{},valor=v=>v===null||v===undefined||String(v).trim()===""?"NO APLICA":String(v);
+    const seguro=v=>String(v||"SIN_UE").trim().replace(/[^a-zA-Z0-9_-]/g,"_");
+    const ue=datos.ue||datos.UE||datos.numero_embarque||datos.embarque||reg.ue||reg.id||"SIN_UE";
+    const auditor=reg.auditor||userName(),fecha=reg.fecha_cierre||reg.created_at||new Date().toISOString();
+    const margen={izq:10,der:200,top:28,bottom:276};let y=margen.top;
+    function encabezado(){
+      doc.setFont("helvetica","normal");doc.setFontSize(6);doc.setTextColor(100);doc.text("BUSINESS USE",10,10);
+      doc.setTextColor(120);doc.text("SISTEMA DE GESTIÓN DE CALIDAD",10,14);doc.text("FY2627",10,17);
+      doc.setFont("helvetica","bold");doc.setFontSize(14);doc.setTextColor(0);doc.text("AUDITORÍA DE EMBARQUE",105,18,{align:"center"});
+      doc.setFillColor(253,208,0);doc.rect(0,22,210,1,"F");
+    }
+    function nuevaPagina(){doc.addPage();encabezado();y=margen.top;}
+    function espacio(h){if(y+h>margen.bottom)nuevaPagina();}
+    function bloque(t){espacio(12);doc.setFillColor(253,208,0);doc.rect(10,y,190,7,"F");doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(0);doc.text(String(t).toUpperCase(),12,y+4.8);y+=10;}
+    function campo(x,yy,w,etiqueta,contenido){
+      doc.setFont("helvetica","bold");doc.setFontSize(6.5);doc.setTextColor(110);doc.text(String(etiqueta).toUpperCase(),x,yy+2.5);
+      doc.setFillColor(245,245,245);doc.setDrawColor(220);doc.roundedRect(x,yy+3.5,w,8,2,2,"FD");
+      let v=valor(contenido);doc.setFontSize(8);doc.setTextColor(v==="NO APLICA"?140:30);
+      const linea=doc.splitTextToSize(v,w-5)[0]||v;doc.text(linea,x+w/2,yy+8.5,{align:"center"});
+    }
+    function fila(campos){espacio(15);const gap=3,w=(190-gap*(campos.length-1))/campos.length;campos.forEach(([k,v],i)=>campo(10+i*(w+gap),y,w,k,v));y+=15;}
+    function parrafo(etiqueta,contenido){
+      const v=valor(contenido);doc.setFont("helvetica","normal");doc.setFontSize(8);
+      const lineas=doc.splitTextToSize(v,181);const alto=Math.max(12,7+lineas.length*4);
+      espacio(alto+2);doc.setFillColor(247,247,247);doc.setDrawColor(225);doc.roundedRect(10,y,190,alto,1.5,1.5,"FD");
+      doc.setFont("helvetica","bold");doc.setFontSize(6.5);doc.setTextColor(110);doc.text(String(etiqueta).toUpperCase(),13,y+4);
+      doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(30);doc.text(lineas,13,y+9);y+=alto+3;
+    }
+    async function foto(src){
+      try{
+        let data=src;if(/^https?:/i.test(data)){const response=await fetch(data);if(!response.ok)throw Error("Imagen inaccesible");const blob=await response.blob();data=await new Promise((resolve,reject)=>{const fr=new FileReader();fr.onload=()=>resolve(fr.result);fr.onerror=reject;fr.readAsDataURL(blob);});}
+        espacio(54);doc.setFillColor(245,245,245);doc.setDrawColor(220);doc.roundedRect(10,y,90,51,2,2,"FD");
+        try{doc.addImage(data,"JPEG",12,y+2,86,47,undefined,"FAST");}catch(e){doc.addImage(data,"PNG",12,y+2,86,47);}
+        y+=55;
+      }catch(e){parrafo("Evidencia fotográfica","Imagen no disponible en PDF");}
+    }
+    encabezado();bloque("DATOS DE AUDITORÍA");
+    fila([["UE / NÚMERO DE EMBARQUE",ue],["Unidad",datos.unidad],["OMP",datos.omp],["Fecha",new Date(fecha).toLocaleDateString("es-MX")]]);
+    fila([["Auditor",auditor],["Cliente",datos.cliente],["Carrier ID",datos.carrier_id],["Línea",datos.linea]]);
+    fila([["Teórica",datos.teorica],["Resultado",reg.resultado||$("resultadoEstimado")?.textContent||"PENDIENTE"]]);
+    const extras=Object.entries(datos).filter(([k,v])=>!['ue','UE','numero_embarque','embarque','unidad','omp','cliente','carrier_id','linea','teorica'].includes(k)&&v!==null&&v!==undefined&&String(v).trim());
+    if(extras.length){bloque("INFORMACIÓN COMPLEMENTARIA");for(const [k,v] of extras)parrafo(k.replace(/_/g," "),v);}
+    for(const [titulo,seccion] of [["AUDITORÍA DE UNIDAD",reg.unidad],["AUDITORÍA DE EMBARQUE",reg.embarque]]){
+      bloque(titulo);const items=Object.entries(seccion||{});
+      if(!items.length)parrafo("Checklist","Sin respuestas registradas");
+      for(const [nombre,detalle] of items){
+        const d=detalle&&typeof detalle==="object"?detalle:{respuesta:detalle};
+        espacio(15);fila([[nombre,d.respuesta||"PENDIENTE"]]);
+        if(d.observaciones)parrafo("Observaciones",d.observaciones);
+      }
+    }
+    bloque("REQUERIMIENTOS ESPECIALES");
+    if(reg.reqMaestro){const r=reg.reqMaestro;for(const [k,v] of [["Papeleta",r.papeleta],["Altura máxima",r.altura_maxima||r.altura_tarima],["Tarima",r.tarima],["Estiba",r.estiba],["Requerimientos",r.requerimientos],["Aditamentos",Array.isArray(r.aditamentos)?r.aditamentos.join(", "):r.aditamentos]])if(v!==null&&v!==undefined&&String(v).trim())parrafo(k,v);}else parrafo("Resultado","Sin requerimientos especiales aplicables");
+    bloque("ADITAMENTOS");const aditamentos=Object.entries(reg.aditamentos||{});if(!aditamentos.length)parrafo("Registro","Sin aditamentos registrados");for(const [k,v] of aditamentos)parrafo(k,v&&typeof v==="object"?JSON.stringify(v):v);
+    bloque("HALLAZGOS");const hallazgos=reg.hallazgos||[];if(!hallazgos.length)parrafo("Resultado","Sin hallazgos registrados");
+    for(let i=0;i<hallazgos.length;i++){const h=hallazgos[i]||{};parrafo(`Hallazgo ${i+1} · ${h.clasificacion||"SIN CLASIFICAR"}`,h.descripcion||h.observaciones||"Sin descripción");if(h.bloque||h.pregunta)parrafo("Origen",[h.bloque,h.pregunta].filter(Boolean).join(" · "));for(const f of h.fotos||[])await foto(f.data||f.url||f);}
+    bloque("OBSERVACIONES FINALES");parrafo("Observaciones",reg.observaciones||"Sin observaciones");
+    bloque("DICTAMEN FINAL");fila([["Resultado de auditoría",reg.resultado||$("resultadoEstimado")?.textContent||"PENDIENTE"]]);
+    for(const tipo of ["unidad","embarque"]){const fotos=reg.fotos?.[tipo]||[];if(fotos.length){bloque(`EVIDENCIA FOTOGRÁFICA · ${tipo}`);for(const f of fotos)await foto(f.data||f.url||f);}}
+    const total=doc.getNumberOfPages();for(let n=1;n<=total;n++){
+      doc.setPage(n);doc.setDrawColor(220);doc.line(10,280,200,280);doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(80);doc.text("AUDITOR: "+valor(auditor),105,285,{align:"center"});
+      doc.setFont("helvetica","normal");doc.setFontSize(7);doc.text("UE "+valor(ue)+"  |  "+n+"/"+total,195,290,{align:"right"});
+    }
+    doc.save(`Carátula UE ${seguro(ue)}.pdf`);
+  }catch(error){console.error("Error al generar PDF de embarque",error);toast("No se pudo generar el PDF: "+error.message);}
+}
+
 function renderReportes(){const all=reportRows,hs=all.flatMap(r=>r.payload?.hallazgos||[]);const count=(r)=>all.filter(x=>x.resultado===r).length;$("kpisReportes").innerHTML=[["TOTAL AUDITORÍAS",all.length],["LIBERADAS",count("LIBERADO")],["CON OBSERVACIÓN",count("LIBERADO CON OBSERVACIÓN")],["RECHAZADAS",count("RECHAZADO")],["TOTAL HALLAZGOS",hs.length],["CRÍTICOS",hs.filter(x=>x.clasificacion==="CRÍTICO").length],["MAYORES",hs.filter(x=>x.clasificacion==="MAYOR").length],["MENORES",hs.filter(x=>x.clasificacion==="MENOR").length]].map(x=>`<div class="report-kpi"><span>${x[0]}</span><b>${x[1]}</b></div>`).join("");$("tablaReportes").innerHTML=`<table><thead><tr><th>Fecha</th><th>Unidad</th><th>Cliente</th><th>OMP</th><th>Auditor</th><th>Resultado</th><th>PDF</th></tr></thead><tbody>${all.map(r=>`<tr><td>${r.fecha_cierre?new Date(r.fecha_cierre).toLocaleDateString():""}</td><td>${esc(r.datos?.unidad)}</td><td>${esc(r.datos?.cliente)}</td><td>${esc(r.datos?.omp)}</td><td>${esc(r.auditor)}</td><td>${esc(r.resultado)}</td><td><button class="btn btn-secondary btn-small" onclick="generarPDFPorId('${r.id}')">PDF</button></td></tr>`).join("")}</tbody></table>`;}
 async function generarPDFPorId(id){const r=reportRows.find(x=>x.id===id);if(!r)return;try{const {data,error}=await sb.from(TABLE).select("*").eq("id",id).single();if(error)throw error;const p=data.payload||{};await generarPDF({...data,...p,datos:data.datos||{},resultado:data.resultado,auditor:data.auditor});}catch(e){toast("No se pudo generar el PDF de esta auditoría: "+e.message);}}
 function limpiarFiltros(){["fDesde","fHasta","fCliente","fOmp","fResultado","fAuditor","fLinea","fClasificacion"].forEach(x=>$(x).value="");cargarReportes();}
@@ -3561,7 +3659,7 @@ const sesionEmbarques=(()=>{try{return JSON.parse(localStorage.getItem('sesionAc
 const areaEmbarques=String(sesionEmbarques?.datos?.area||'').trim().toUpperCase();
 const adminEmbarques=localStorage.getItem('adminPortal')==='true'||sesionEmbarques?.datos?.admin===true;
 const accesoEmbarques=!!(user&&!guest&&(adminEmbarques||areaEmbarques==='CALIDAD'||areaEmbarques==='OPERACIONES'));
-const current=ITEMS.find(x=>x.href.toLowerCase()===path.toLowerCase()),canSeeDash=!!(user&&allowed&&!guest),canSeePanel=canSeeDash||accesoEmbarques;
+const current=ITEMS.find(x=>x.href.toLowerCase()===path.toLowerCase()),canSeeDash=!!(!guest&&(adminEmbarques||(user&&allowed))),canSeePanel=canSeeDash||accesoEmbarques;
 if(current&&current.embarques&&!accesoEmbarques){location.replace('index.html');return;}
 if(current&&current.protected&&!canSeeDash){location.replace('index.html');return;}
 // El panel fijo es exclusivo de perfiles con permiso de Dashboard.
@@ -3573,12 +3671,12 @@ if(isIndex)return;
 const homeLink=document.createElement('a');homeLink.className='qtn-home-float';homeLink.href='index.html';homeLink.setAttribute('aria-label','Volver al inicio');homeLink.innerHTML=svg('home')+'<span>INICIO</span>';
 const panel=document.createElement('aside');panel.className='qtn-rail';panel.setAttribute('aria-label','Navegación principal');panel.innerHTML='<div class="qtn-brand"><div class="qtn-brand-row"><div><div class="qtn-brand-name">PORTAL DE CALIDAD: Site SMO</div></div></div></div><a class="qtn-home-link" href="index.html">'+svg('home')+'<span>Inicio / Portal principal</span></a><div class="qtn-search-wrap"><div class="qtn-search-box">'+svg('search')+'<input class="qtn-search" type="search" placeholder="Buscar módulo…" autocomplete="off" aria-label="Buscar módulo"></div></div><nav class="qtn-links" aria-label="Módulos disponibles"></nav>';
 const nav=panel.querySelector('.qtn-links'),search=panel.querySelector('.qtn-search');
-function render(q=''){nav.innerHTML='';let count=0;[['dashboards','DASHBOARDS'],['operacion','OPERACIÓN']].forEach(([group,label])=>{const arr=ITEMS.filter(x=>x.group===group&&(!x.protected||canSeeDash)&&(!x.embarques||accesoEmbarques)&&(x.label+' '+x.desc).toLowerCase().includes(q.trim().toLowerCase()));if(!arr.length)return;const h=document.createElement('div');h.className='qtn-group';h.textContent=label;nav.append(h);arr.forEach(item=>{count++;const a=document.createElement('a');a.className='qtn-link'+(item.href.toLowerCase()===path.toLowerCase()?' current':'');a.href=item.href;if(item.href.toLowerCase()===path.toLowerCase())a.setAttribute('aria-current','page');a.innerHTML='<span class="qtn-icon">'+svg(item.icon)+'</span><span class="qtn-copy"><strong>'+item.label+'</strong><small>'+item.desc+'</small></span><span class="qtn-arrow" aria-hidden="true">›</span>';nav.append(a);});});if(!count){const e=document.createElement('div');e.className='qtn-empty';e.textContent='No hay módulos que coincidan con tu búsqueda.';nav.append(e);}}
+function render(q=''){nav.innerHTML='';let count=0;[['dashboards','DASHBOARDS'],['operacion','OPERACIÓN']].forEach(([group,label])=>{const arr=ITEMS.filter(x=>x.group===group&&(!x.protected||canSeeDash)&&(!x.embarques||accesoEmbarques)&&(!(!adminEmbarques&&areaEmbarques==='OPERACIONES')||x.embarques)&&(x.label+' '+x.desc).toLowerCase().includes(q.trim().toLowerCase()));if(!arr.length)return;const h=document.createElement('div');h.className='qtn-group';h.textContent=label;nav.append(h);arr.forEach(item=>{count++;const a=document.createElement('a');a.className='qtn-link'+(item.href.toLowerCase()===path.toLowerCase()?' current':'');a.href=item.href;if(item.href.toLowerCase()===path.toLowerCase())a.setAttribute('aria-current','page');a.innerHTML='<span class="qtn-icon">'+svg(item.icon)+'</span><span class="qtn-copy"><strong>'+item.label+'</strong><small>'+item.desc+'</small></span><span class="qtn-arrow" aria-hidden="true">›</span>';nav.append(a);});});if(!count){const e=document.createElement('div');e.className='qtn-empty';e.textContent='No hay módulos que coincidan con tu búsqueda.';nav.append(e);}}
 render();panel.appendChild(nav);document.body.append(panel);
 const mobile=document.createElement('button');mobile.type='button';mobile.className='qtn-mobile-trigger';mobile.setAttribute('aria-label','Abrir navegación');mobile.setAttribute('aria-expanded','false');mobile.innerHTML=svg('grid');const backdrop=document.createElement('div');backdrop.className='qtn-mobile-backdrop';document.body.append(mobile,backdrop);
 function open(){panel.classList.add('open');backdrop.classList.add('open');document.body.classList.add('qa-rail-open');mobile.setAttribute('aria-expanded','true');search.focus();}function close(){panel.classList.remove('open');backdrop.classList.remove('open');document.body.classList.remove('qa-rail-open');mobile.setAttribute('aria-expanded','false');}
 mobile.addEventListener('click',()=>panel.classList.contains('open')?close():open());backdrop.addEventListener('click',close);search.addEventListener('input',()=>render(search.value));document.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
-if(canSeeDash){document.body.classList.add('qa-has-left-rail');homeLink.style.display='none';}else{panel.style.display='none';mobile.style.display='none';document.body.append(homeLink);}
+if(canSeePanel){document.body.classList.add('qa-has-left-rail');homeLink.style.display='none';}else{panel.style.display='none';mobile.style.display='none';document.body.append(homeLink);}
 })();
 </script>
 <footer class="qa-creditos-unificados">⚙️ Sistema QA | Desarrollado por <strong>Felix Montoya</strong> | Diseño y Asesoría por <strong>Itzel Pérez</strong></footer>
