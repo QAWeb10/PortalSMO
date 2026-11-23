@@ -3256,22 +3256,62 @@ function generarPapeletaPDF(){
     String(r.requerimientos||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean).forEach((v,i)=>add("REQUERIMIENTO "+(i+1),v));
     (r.aditamentos||[]).forEach((v,i)=>add("ADITAMENTO "+(i+1),v));
     if(!entries.length)entries.push({label:"CATÁLOGO",value:"Sin requerimientos configurados para esta OMP o para el cliente en general."});
-    const startY=156,limitY=228,available=limitY-startY;
-    const measure=scale=>entries.reduce((sum,e)=>{doc.setFont("helvetica","normal");doc.setFontSize(7.4*scale);const ls=doc.splitTextToSize(e.value,126);return sum+Math.max(5,ls.length*3.25*scale)+3.2*scale;},0);
-    let scale=1;while(scale>.5&&measure(scale)>available)scale-=.05;scale=Math.max(.48,scale);
-    let y=startY;
-    entries.forEach(e=>{
-      text(e.label,left,y,6.5*scale,true,125,mid);y+=3.2*scale;
-      const valueLines=text(e.value,left+1,y,7.4*scale,false,126,ink);check(151,y,"CUMPLE");check(177,y,"NO CUMPLE");
-      y+=Math.max(5,valueLines.length*3.25*scale)+3.2*scale;
-      doc.setDrawColor(218,222,226);doc.setLineWidth(.2);doc.line(left,y-1,right,y-1);
-    });
-
-    doc.setDrawColor(...line);doc.setLineWidth(.3);doc.line(left,235,right,235);
-    text("TOTAL DE TARIMAS:",left,244,8,true,60,ink);doc.line(76,245,145,245);
-    text("OBSERVACIONES:",left,257,8,true,75,ink);doc.setDrawColor(...line);doc.roundedRect(left,261,182,14,1,1);
-    doc.setDrawColor(...ink);doc.setLineWidth(.4);doc.line(122,283,right,283);
-    text("FIRMA DE MONTACARGUISTA",159,288,6.8,true,74,mid,"center");
+    const availableTop=153, availableBottom=229;
+    const valueWidth=124;
+    const calculate=(size,pad)=>{
+      doc.setFont("helvetica","normal");doc.setFontSize(size);
+      const rows=entries.map(entry=>{
+        const lines=doc.splitTextToSize(String(entry.value),valueWidth);
+        const lineHeight=size*.39;
+        return {entry,lines,height:Math.max(7.4,pad+lines.length*lineHeight)};
+      });
+      return {rows,total:rows.reduce((sum,row)=>sum+row.height,0)};
+    };
+    let layout,fs=8.2,pad=6.4;
+    for(let step=0;step<20;step++){
+      layout=calculate(fs,pad);
+      if(layout.total<=availableBottom-availableTop)break;
+      fs=Math.max(5.2,fs-.2);
+      pad=Math.max(3.6,pad-.22);
+    }
+    layout=calculate(fs,pad);
+    if(layout.total>availableBottom-availableTop){
+      const factor=(availableBottom-availableTop)/layout.total;
+      layout.rows.forEach(row=>row.height*=factor);
+    }
+    let y=availableTop;
+    for(const row of layout.rows){
+      const {entry,height}=row;
+      const labelSize=Math.max(5,fs-.9);
+      const lineHeight=fs*.39;
+      text(entry.label,left+1,y+Math.min(2.8,height*.35),labelSize,true,124,mid);
+      doc.setFont("helvetica","normal");doc.setFontSize(fs);
+      const lines=doc.splitTextToSize(String(entry.value),valueWidth);
+      const startY=y+Math.min(6,height*.60);
+      const maxLines=Math.max(1,Math.floor((height-(startY-y)-.5)/lineHeight)+1);
+      doc.setTextColor(...ink);
+      doc.text(lines.slice(0,maxLines),left+1,startY,{lineHeightFactor:1.0});
+      const checkY=y+height/2+1;
+      check(151,checkY,"CUMPLE");check(177,checkY,"NO CUMPLE");
+      doc.setDrawColor(207,213,219);doc.setLineWidth(.2);
+      doc.line(left,y+height,right,y+height);
+      y+=height;
+    }
+    const fy=233;
+    doc.setDrawColor(...line);doc.setLineWidth(.3);doc.line(left,fy,right,fy);
+    text("TOTAL DE TARIMAS:",left,fy+6.5,7.5,true,60,ink);doc.line(76,fy+7.5,145,fy+7.5);
+    text("OBSERVACIONES:",left,fy+14,7.5,true,75,ink);
+    doc.setDrawColor(...line);doc.roundedRect(left,fy+17,182,12,1,1);
+    doc.setDrawColor(...ink);doc.setLineWidth(.35);doc.line(124,fy+34,right,fy+34);
+    text("FIRMA DE MONTACARGUISTA",160,fy+37.5,6,true,70,mid,"center");
+    doc.setDrawColor(...line);doc.setLineWidth(.2);doc.line(left,273,right,273);
+    text("Rev. 20",77,276,6.2,false,25,ink,"center");
+    text("Ref. PR-OP-1715-1220-083",116,276,6.2,false,65,ink,"center");
+    text("Cod. FO-OP-1715-1220-128",171,276,6.2,false,55,ink,"center");
+    const legal='El presente documento es únicamente para uso interno y la información contenida en el mismo es propiedad de Deutsche Post y todas sus subsidiarias, afiliadas, controladas y/o controladoras “DHL”; es estrictamente confidencial y constituye un secreto industrial en términos del artículo 82 de la Ley de la Propiedad Industrial por lo que el apoderamiento, reproducción, explotación y/o revelación no autorizada de la misma por parte de DHL, constituye un delito en términos de dicha ley y la legislación penal aplicable. En adición a ello, DHL se reserva el derecho de reclamar los daños y perjuicios que deriven del mal uso de la información confidencial contenida en este documento.”';
+    doc.setFont("helvetica","normal");doc.setFontSize(4.65);doc.setTextColor(...ink);
+    const legalLines=doc.splitTextToSize(legal,182);
+    doc.text(legalLines,105,279,{align:"center",lineHeightFactor:.98});
     doc.save(`Carátula UE ${String(sel.prioridad.UE||sel.prioridad.DATO_PDF||"SIN_UE").replace(/[^A-Za-z0-9_-]/g,"_")}.pdf`);
   }catch(e){toast("No se pudo generar la papeleta: "+e.message);}
 }
@@ -3573,7 +3613,40 @@ async function eliminarAuditoria(id){
 }
 async function abrirAuditoria(id){try{const {data,error}=await sb.from(TABLE).select("*").eq("id",id).single();if(error)throw error;const p=data.payload||{};audit={id:data.id,estado:data.estado,auditor:data.auditor,datos:data.datos||{},unidad:p.unidad||{},embarque:p.embarque||{},reqMaestro:p.reqMaestro||null,aditamentos:p.aditamentos||{},hallazgos:p.hallazgos||[],fotos:p.fotos||{unidad:[],embarque:[]},observaciones:p.observaciones||""};for(const k of ["unidad","embarque"])for(const f of audit.fotos[k]||[])if(f.url&&!f.data)f.data=f.url;for(const h of audit.hallazgos)for(const f of h.fotos||[])if(f.url&&!f.data)f.data=f.url;const nuevo=prioridadRows.find(r=>normalizarClaveCruce(r.UE||r.SHIPMENT||r.CARRIER).flex===normalizarClaveCruce(audit.datos.unidad).flex);if(nuevo){audit.datos.cliente=audit.datos.cliente||nuevo.CLIENTE||"";audit.datos.omp=audit.datos.omp||nuevo.OMP||"";audit.datos.linea=audit.datos.linea||nuevo.LINEA||"";audit.datos.teorica=audit.datos.teorica||nuevo.TEORICA||"";audit.datos.columna_j=audit.datos.columna_j||nuevo.COLUMNA_J||"";}renderAudit();irVista("auditoria");consultarRequisitos();}
 catch(e){toast("No se pudo abrir: "+e.message);}}
-async function finalizarAuditoria(){if(!audit)return;clearTimeout(saveTimer);if(guardadoEnCurso)await guardadoEnCurso;if(!navigator.onLine){await guardarBorradorLocal(audit);toast("Sin conexión: auditoría guardada en el dispositivo. Finaliza cuando vuelva internet.");return;}const incomplete=[...CHECK_UNIDAD.map(x=>audit.unidad[x]),...CHECK_EMBARQUE.map(x=>audit.embarque[x])].filter(x=>!x?.respuesta);if(incomplete.length&&!await qaDialog({title:"Auditoría con puntos pendientes",message:`Hay ${incomplete.length} puntos sin respuesta. ¿Deseas finalizar de todos modos?`,accept:"Finalizar auditoría"}))return;const invalid=audit.hallazgos.some(h=>!h.clasificacion||!h.descripcion.trim());if(invalid){toast("Completa clasificación y descripción de todos los hallazgos.");return;}try{await subirFotos();const hs=audit.hallazgos;const result=hs.some(x=>x.clasificacion==="CRÍTICO")?"RECHAZADO":hs.some(x=>["MAYOR","MENOR","OBSERVACIÓN"].includes(x.clasificacion))?"LIBERADO CON OBSERVACIÓN":"LIBERADO";const now=new Date();const row={id:audit.id,estado:"FINALIZADA",resultado:result,fecha_cierre:now.toISOString(),auditor:audit.auditor||userName(),datos:audit.datos,payload:payload(),observaciones_finales:audit.observaciones||""};const {error}=await sb.from(TABLE).upsert(row,{onConflict:"id"});if(error)throw error;await eliminarBorradorLocal(audit.id);audit.estado="FINALIZADA";toast("Auditoría finalizada: "+result);irVista("reportes");}catch(e){toast("No se pudo finalizar: "+e.message);}}
+async function finalizarAuditoria(){
+  if(!audit)return;
+  clearTimeout(saveTimer);
+  if(guardadoEnCurso)await guardadoEnCurso;
+  if(!navigator.onLine){await guardarBorradorLocal(audit);toast("Sin conexión: auditoría guardada en el dispositivo. Finaliza cuando vuelva internet.");return;}
+  const incomplete=[...CHECK_UNIDAD.map(x=>audit.unidad[x]),...CHECK_EMBARQUE.map(x=>audit.embarque[x])].filter(x=>!x?.respuesta);
+  if(incomplete.length&&!await qaDialog({title:"Auditoría con puntos pendientes",message:`Hay ${incomplete.length} puntos sin respuesta. ¿Deseas finalizar de todos modos?`,accept:"Finalizar auditoría"}))return;
+  const invalid=audit.hallazgos.some(h=>!h.clasificacion||!h.descripcion.trim());
+  if(invalid){toast("Completa clasificación y descripción de todos los hallazgos.");return;}
+  try{
+    await subirFotos();
+    const hs=audit.hallazgos;
+    const result=hs.some(x=>x.clasificacion==="CRÍTICO")?"RECHAZADO":hs.some(x=>["MAYOR","MENOR","OBSERVACIÓN"].includes(x.clasificacion))?"LIBERADO CON OBSERVACIÓN":"LIBERADO";
+    const contenido=payload();
+    const {data:existente,error:consultaError}=await sb.from(TABLE).select("id,estado").eq("id",audit.id).maybeSingle();
+    if(consultaError)throw consultaError;
+    if(!existente){
+      const {error:insertError}=await sb.from(TABLE).insert({id:audit.id,estado:"EN PROCESO",auditor:audit.auditor||userName(),datos:audit.datos,payload:contenido});
+      if(insertError)throw insertError;
+    }
+    const {data:folio,error}=await sb.rpc("finalizar_auditoria_con_folio",{
+      p_id:String(audit.id),p_resultado:result,p_auditor:audit.auditor||userName(),
+      p_datos:audit.datos,p_payload:contenido,p_observaciones:audit.observaciones||""
+    });
+    if(error)throw error;
+    if(!/^AU-2627-\d{4,}$/.test(String(folio||"")))throw new Error("Supabase no devolvió un folio válido.");
+    audit.folio_auditoria=folio;
+    audit.estado="FINALIZADA";
+    audit.resultado=result;
+    await eliminarBorradorLocal(audit.id);
+    toast("Auditoría finalizada: "+folio);
+    irVista("reportes");
+  }catch(e){toast("No se pudo finalizar: "+e.message+". Verifica que el SQL de folios esté instalado.");}
+}
 async function generarPDF(reg=audit){
   if(!reg)return;
   try{
@@ -3642,7 +3715,14 @@ async function generarPDF(reg=audit){
       doc.setPage(n);doc.setDrawColor(220);doc.line(10,280,200,280);doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(80);doc.text("AUDITOR: "+valor(auditor),105,285,{align:"center"});
       doc.setFont("helvetica","normal");doc.setFontSize(7);doc.text("UE "+valor(ue)+"  |  "+n+"/"+total,195,290,{align:"right"});
     }
-    doc.save(`Carátula UE ${seguro(ue)}.pdf`);
+    let folio=reg.folio_auditoria;
+    if(!folio&&reg.id){
+      const {data:registro,error:folioError}=await sb.from(TABLE).select("folio_auditoria,estado").eq("id",reg.id).single();
+      if(folioError)throw folioError;
+      folio=registro?.folio_auditoria;
+    }
+    if(!/^AU-2627-\d{4,}$/.test(String(folio||"")))throw new Error("La auditoría todavía no tiene folio. Finalízala primero.");
+    doc.save(`${folio}.pdf`);
   }catch(error){console.error("Error al generar PDF de embarque",error);toast("No se pudo generar el PDF: "+error.message);}
 }
 
