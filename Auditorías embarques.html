@@ -859,12 +859,10 @@ button{
   margin:14px auto 38px;
 }
 
-
-
 .auditorias-inicio-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10000;display:flex;align-items:center;justify-content:center;padding:18px;}
 .auditorias-inicio-overlay.hidden{display:none;}
 .auditorias-inicio-shell{width:min(560px,100%);max-height:90vh;overflow:auto;background:#fff;border:1px solid #dce6f2;border-radius:18px;box-shadow:0 18px 55px rgba(5,29,67,.18);}
-.auditorias-inicio-head{padding:20px 22px;border-bottom:1px solid #eee;text-align:center;background:linear-gradient(110deg,#061d43,#0a3971)!important;color:#fff!important}
+.auditorias-inicio-head{padding:20px 22px;border-bottom:1px solid #eee;text-align:center;background:#08264f!important;color:#fff!important}
 .auditorias-inicio-head h2{margin:0;font-size:20px;color:#fff!important}
 .auditorias-inicio-body{padding:22px;display:grid;gap:12px;}
 .auditorias-inicio-btn{width:100%;min-height:48px;font-weight:700;}
@@ -2151,7 +2149,6 @@ input,select,textarea{max-width:100%;min-width:0}
 @media(max-width:640px){.qtn-home-float.qa-no-panel-home{left:12px!important;bottom:12px!important;min-height:44px!important;padding:11px 14px!important;font-size:12px!important;max-width:calc(100vw - 24px)!important}.qa-creditos-unificados{font-size:11px!important}}
 </style>
 
-
 <style id="smo-ejecutivo-claro-v1">
 
 :root{
@@ -2650,6 +2647,16 @@ body.qa-dialog-open{overflow:hidden}.qa-dialog{width:min(560px,100%);max-height:
 @media(max-width:700px){.hallazgo-resumen-item{padding:8px;gap:7px}.hallazgo-resumen-item .btn{padding:6px 9px}}
 </style>
 <style id="qa-permisos-embarques">.qa-papeleta-header{width:auto!important;min-height:34px!important;padding:8px 12px!important;margin:0 8px 0 0!important;white-space:nowrap!important;background:#fff!important;color:#0b3765!important;border:1px solid #cbdced!important;border-radius:8px!important;font-size:11px!important;font-weight:800!important}.qa-papeleta-header.hidden,#btnAccesoRequisitos.hidden{display:none!important}@media(max-width:600px){.qa-papeleta-header{padding:7px 8px!important;font-size:10px!important;margin-right:3px!important}}</style>
+<style id="qa-overlay-colores-final">
+.auditorias-inicio-shell{width:min(504px,100%)!important;border-radius:17px!important;overflow:hidden!important;border:1px solid #c7d8ed!important;background:#fff!important}
+.auditorias-inicio-head{background:#092955!important;color:#fff!important;padding:19px 18px!important}
+.auditorias-inicio-head h2{color:#fff!important;font-size:18px!important;font-weight:900!important}
+.auditorias-inicio-body{padding:20px!important;gap:10px!important}
+.auditorias-inicio-body .auditorias-inicio-btn{min-height:37px!important;height:auto!important;padding:10px 12px!important;font-size:11px!important;border-radius:9px!important;box-shadow:none!important;text-decoration:none!important;line-height:1.25!important}
+.auditorias-inicio-body .auditorias-inicio-btn:not(.hidden){background:#eaf2f8!important;border:1px solid #0874d5!important;color:#0962b5!important}
+.auditorias-inicio-body .auditorias-inicio-btn:not(.hidden):first-child{background:#fa680b!important;border:1px solid #fa680b!important;color:#fff!important;box-shadow:0 3px 8px rgba(250,104,11,.14)!important}
+.auditorias-inicio-body .auditorias-inicio-btn:hover{filter:brightness(.97)!important}
+</style>
 </head>
 
 <body>
@@ -2667,7 +2674,6 @@ body.qa-dialog-open{overflow:hidden}.qa-dialog{width:min(560px,100%);max-height:
   <div class="spacer"></div>
 
   <span class="badge">FY2627</span>
-
 
   <nav class="nav-dash" aria-label="Navegación entre sistemas">
     <a class="system" href="Alertas de calidad.html" title="Ir a Alertas de calidad">Alertas</a>
@@ -2764,7 +2770,6 @@ body.qa-dialog-open{overflow:hidden}.qa-dialog{width:min(560px,100%);max-height:
   </div></section>
 </main>
 
-
 <main class="wrap hidden" id="vistaRequisitos">
   <section class="card">
     <div class="card-head"><h2><span class="section-number">01</span> Catálogo maestro de requerimientos especiales</h2><small>Registros por OMP y requerimientos generales TRANSMODAL y GRANEL</small></div>
@@ -2830,7 +2835,6 @@ body.qa-dialog-open{overflow:hidden}.qa-dialog{width:min(560px,100%);max-height:
   </section>
 </main>
 
-
 <div id="auditoriasInicioOverlay" class="auditorias-inicio-overlay" aria-hidden="false">
   <div class="auditorias-inicio-shell">
     <div class="auditorias-inicio-head">
@@ -2842,6 +2846,7 @@ body.qa-dialog-open{overflow:hidden}.qa-dialog{width:min(560px,100%);max-height:
       <button type="button" data-acceso="auditoria" class="btn btn-secondary auditorias-inicio-btn hidden" onclick="irVista('reportes'); return false;">REPORTES</button>
       <button type="button" id="btnAccesoRequisitos" class="btn btn-secondary auditorias-inicio-btn hidden" onclick="irVista('requisitos'); return false;">REQUERIMIENTOS ESPECIALES</button>
       <button type="button" id="btnAccesoPapeleta" class="btn btn-secondary auditorias-inicio-btn hidden" onclick="irVista('imprimir'); return false;">IMPRIMIR PAPELETA</button>
+      <a href="index.html" class="btn btn-secondary auditorias-inicio-btn" style="text-decoration:none;display:flex;align-items:center;justify-content:center;">INICIO</a>
       <p id="mensajeAccesoEmbarques" class="hidden" style="margin:10px 0 0;text-align:center;font-size:13px;color:#526579">No tienes acceso a este módulo.</p>
 
     </div>
@@ -2917,7 +2922,6 @@ async function procesarExcel(tipo,file,guardarCompartido){
     const wb=XLSX.read(await file.arrayBuffer(),{type:"array"});
     const ws=wb.Sheets[wb.SheetNames[0]];
     if(tipo==="patio"){
-      // PRIME / PUERTAS: los campos se localizan exclusivamente por nombre de encabezado.
       const rows=XLSX.utils.sheet_to_json(ws,{defval:"",raw:false});
       if(!rows.length)throw Error("El archivo PRIME / PUERTAS no contiene filas.");
       const map={};Object.keys(rows[0]).forEach(h=>map[normalizarHeader(h)]=h);
@@ -2929,7 +2933,6 @@ async function procesarExcel(tipo,file,guardarCompartido){
       $("estadoPatio").className="file-status success";
       $("estadoPatio").textContent=`${file.name} · ${patioRows.length} registros · encabezados validados`;
     }else{
-      // Prioridades: reconoce encabezados y mantiene el cruce anterior CARRIER como respaldo.
       const matrix=XLSX.utils.sheet_to_json(ws,{header:1,defval:"",raw:false});
       if(matrix.length<2)throw Error("El archivo de Prioridades debe incluir encabezados y al menos un registro.");
       const headers=matrix[0].map(x=>normalizarHeader(x)), hmap={};headers.forEach((h,i)=>{if(h)hmap[h]=i;});
@@ -2972,7 +2975,7 @@ async function procesarExcel(tipo,file,guardarCompartido){
       $("estadoPrioridades").textContent=`${file.name} · ${prioridadRows.length} registros · Shipment/CARRIER, UE, cliente, teórica y OMP leídos`;
     }
     if(guardarCompartido)await guardarProgramacionCompartida(tipo,file);
-    if(patioRows.length&&prioridadRows.length)relacionarArchivos();
+    if(patioRows.length)relacionarArchivos();
   }catch(e){throw e;}
 }
 function normalizarClaveCruce(v){
@@ -2987,7 +2990,6 @@ function relacionarArchivos(){
     if(k.exact&&!exactIndex.has(k.exact))exactIndex.set(k.exact,r);
     if(k.flex&&!flexIndex.has(k.flex))flexIndex.set(k.flex,r);
   });
-  // Solo mostrar ubicaciones de puerta: excluye celdas vacías y ubicaciones LOT.
   unidades=patioRows.filter(p=>String(p["YARD LOCATION"]??"").trim().toUpperCase().startsWith("DOOR")).map(p=>{
     const k=normalizarClaveCruce(p["CARRIER MOVE ID"]);
     return {patio:p,prioridad:exactIndex.get(k.exact)||flexIndex.get(k.flex)||null};
@@ -2997,14 +2999,15 @@ function relacionarArchivos(){
   renderUnidades(unidades);
 }
 function filtrarUnidades(){const q=normalizarHeader($("buscarUnidad").value);if(!q){renderUnidades(unidades);return;}renderUnidades(unidades.filter(x=>normalizarHeader(x.patio["CARRIER MOVE ID"]).includes(q)||normalizarHeader(x.patio["YARD LOCATION"]).includes(q)||normalizarHeader(x.prioridad?.CLIENTE).includes(q)||normalizarHeader(x.prioridad?.UE).includes(q)));}
-function renderUnidades(rows){rows=[...rows].sort((a,b)=>{const get=x=>String(x.patio["YARD LOCATION"]||"");return get(a).localeCompare(get(b),"es",{numeric:true,sensitivity:"base"});});$("listaUnidades").innerHTML=rows.slice(0,250).map((x)=>`<button class="unit-row unit-row-grid" onclick="iniciarAuditoria(${unidades.indexOf(x)})"><span><b>${esc(x.patio["YARD LOCATION"]||"—")}</b></span><span><b>${esc(x.patio["CARRIER MOVE ID"]||"—")}</b></span><span>${esc(x.prioridad?.CLIENTE||"—")}</span></button>`).join("")||'<div class="muted">No hay puertas DOOR para mostrar.</div>';}
+function renderUnidades(rows){rows=[...rows].sort((a,b)=>{const get=x=>String(x.patio["YARD LOCATION"]||"");return get(a).localeCompare(get(b),"es",{numeric:true,sensitivity:"base"});});$("listaUnidades").innerHTML=rows.slice(0,250).map((x)=>`<button class="unit-row unit-row-grid" onclick="iniciarAuditoria(${unidades.indexOf(x)})"><span><b>${esc(x.patio["YARD LOCATION"]||"—")}</b></span><span><b>${esc(x.patio["CARRIER MOVE ID"]||"—")}</b></span><span>${esc(x.prioridad?.CLIENTE||"Pendiente de prioridades")}</span></button>`).join("")||'<div class="muted">No hay puertas DOOR para mostrar.</div>';}
 async function iniciarAuditoria(i){
   const x=unidades[i];if(!x)return;
-  if(!x.prioridad){toast("Esta unidad no tiene coincidencia en Prioridades.");return;}
+  if(!x.prioridad)toast("Puedes comenzar la auditoría. Los datos de Prioridades se completarán cuando llegue el archivo.");
   const p=x.prioridad||{};
   if(!navigator.onLine){toast("Para iniciar una auditoría nueva se necesita conexión. Puedes continuar un borrador local.");return;}
   const ueKey=normalizarClaveCruce(x.patio["CARRIER MOVE ID"]).flex;
-  try{const {data,error}=await sb.from(TABLE).select("id,estado,datos").in("estado",["BORRADOR","EN PROCESO","FINALIZADA"]).limit(1000);if(error)throw error;const existente=(data||[]).find(r=>normalizarClaveCruce(r.datos?.unidad).flex===ueKey);if(existente){if(existente.estado==="FINALIZADA"){toast("Esta UE ya tiene una auditoría finalizada. Consulta Reportes.");return;}toast("Esta UE ya tiene una auditoría abierta. Se abrirá el registro existente.");await abrirAuditoria(existente.id);return;}}catch(e){toast("No se pudo verificar si esta UE ya fue auditada. Intenta de nuevo.");return;}
+  const locales=await listarBorradoresLocales().catch(()=>[]);const local=locales.find(r=>normalizarClaveCruce(r.datos?.unidad).flex===ueKey);if(local){await abrirBorradorLocal(local.id);return;}
+  try{const {data,error}=await sb.from(TABLE).select("id,estado,datos").in("estado",["BORRADOR","EN PROCESO","FINALIZADA"]).order("updated_at",{ascending:false}).limit(5000);if(error)throw error;const existente=(data||[]).find(r=>normalizarClaveCruce(r.datos?.unidad).flex===ueKey);if(existente){if(existente.estado==="FINALIZADA"){toast("Esta UE ya tiene una auditoría finalizada. Consulta Reportes.");return;}toast("Esta UE ya tiene una auditoría abierta. Se abrirá el registro existente.");await abrirAuditoria(existente.id);return;}}catch(e){toast("No se pudo verificar si esta UE ya fue auditada. Intenta de nuevo.");return;}
   audit={id:uid(),estado:"BORRADOR",created_at:new Date().toISOString(),auditor:userName(),datos:{
     cortina:x.patio["YARD LOCATION"]||"",unidad:x.patio["CARRIER MOVE ID"]||"",
     omp:p.OMP||"",tipo:p["TIPO DE EMBARQUE"]||p.SHIPMENT||"",
@@ -3013,7 +3016,7 @@ async function iniciarAuditoria(i){
     eco:x.patio["TRAILER NUMBER"]||""
   },unidad:{},embarque:{},requisitos:{},aditamentos:{},hallazgos:[],fotos:{unidad:[],embarque:[]},observaciones:""};
   renderAudit();irVista("auditoria");
-  if(!x.prioridad)toast("No se encontró coincidencia entre CARRIER MOVE ID y CARRIER. Revisa los valores de ambos Excel.");
+  if(!x.prioridad)toast("Auditoría iniciada sin lista de prioridades; puedes guardar los avances.");
   consultarRequisitos();scheduleSave();
 }
 function renderAudit(){
@@ -3041,7 +3044,7 @@ function renderChecks(id,items,section){
 }
 function setCheckObservation(section,name,value){audit[section][name]=audit[section][name]||{};audit[section][name].observaciones=value;scheduleSave();}
 function setCheck(section,name,key,value){audit[section][name]=audit[section][name]||{};audit[section][name][key]=value;renderChecks(section==="unidad"?"checkUnidad":"checkEmbarque",section==="unidad"?CHECK_UNIDAD:CHECK_EMBARQUE,section);updateResult();scheduleSave();}
-function renderPhotos(){["unidad","embarque"].forEach(k=>{$("fotos"+(k==="unidad"?"Unidad":"Embarque")).innerHTML=(audit.fotos[k]||[]).map((p,i)=>`<div class="photo-thumb"><img src="${p.data}" alt="Evidencia"><button onclick="eliminarFoto('${k}',${i})">×</button></div>`).join("")||'<span class="muted">Sin fotografías (opcional).</span>';});}
+function renderPhotos(){["unidad","embarque"].forEach(k=>{$("fotos"+(k==="unidad"?"Unidad":"Embarque")).innerHTML=(audit.fotos[k]||[]).map((p,i)=>`<div class="photo-thumb"><img src="${p.data||p.url||""}" alt="Evidencia"><button onclick="eliminarFoto('${k}',${i})">×</button></div>`).join("")||'<span class="muted">Sin fotografías (opcional).</span>';});}
 function abrirCamara(target){cameraTarget=target;facing="environment";iniciarStream();}
 async function iniciarStream(){try{stream?.getTracks().forEach(t=>t.stop());stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing},width:{ideal:1600}},audio:false});$("cameraVideo").srcObject=stream;$("cameraOverlay").classList.add("show");$("cameraError").textContent="";}catch(e){$("cameraError").textContent="No fue posible abrir la cámara. Verifica permisos y usa HTTPS.";}}
 async function cambiarCamara(){facing=facing==="environment"?"user":"environment";await iniciarStream();}
@@ -3095,8 +3098,6 @@ function resolverMaestro(cliente,omp,valorColJ,valorColE,rows){
   if(String(valorColE??"").trim().toUpperCase()==="N")return elegirReglaUnica(all.filter(r=>r.criterio==="GRANEL"));
   const key=ompKey(omp);if(!key.exact)return null;
   const porOmp=all.filter(r=>r.criterio==="OMP"&&(r.omp_values||[]).some(v=>{const k=ompKey(v);return k.exact===key.exact||(key.flex&&k.flex===key.flex);}));
-  // La OMP es la única clave de cruce en embarques no modales y no granel.
-  // El cliente es informativo y nunca bloquea la asignación.
   return elegirReglaUnica(porOmp);
 }
 function elegirReglaUnica(rows){
@@ -3174,7 +3175,6 @@ async function buscarPapeletaUE(){
   const box=$("resultadoBusquedaPapeleta"),btn=$("btnGenerarPapeleta");
   papeletaSeleccionada=null;btn.disabled=true;box.classList.remove("hidden");
   if(!q){box.innerHTML='<div class="warning">Escribe una UE para buscar.</div>';return;}
-  // La tabla de unidades y la papeleta utilizan el mismo vínculo ya calculado.
   const igualUE=v=>{const k=normalizarClaveCruce(v);return !!k.exact&&(k.exact===buscada.exact||k.flex===buscada.flex);};
   let pr=prioridadRows.find(r=>igualUE(r.UE)||igualUE(r.SHIPMENT));
   let rel=unidades.find(x=>igualUE(x.patio["CARRIER MOVE ID"])||igualUE(x.prioridad?.UE));
@@ -3218,31 +3218,26 @@ function generarPapeletaPDF(){
       doc.setFont("helvetica","normal");doc.setFontSize(5.8);doc.setTextColor(65,70,76);doc.text(label,x+4.5,y-.3);
     };
 
-    // Marco exterior de la hoja, visible también al imprimir en escala de grises.
     doc.setDrawColor(...ink);doc.setLineWidth(.75);doc.rect(7,7,196,283);
     doc.setDrawColor(...line);doc.setLineWidth(.2);doc.rect(9,9,192,279);
 
-    // Encabezado dividido en dos bloques independientes: título y referencia.
     doc.setFillColor(246,247,248);doc.setDrawColor(...ink);doc.setLineWidth(.45);doc.roundedRect(left,14,99,39,2,2,"FD");
     text("CARÁTULA DE EMBARQUE",left+49.5,30,16,true,93,ink,"center");
     doc.setDrawColor(...line);doc.setLineWidth(.35);doc.line(left+15,35,left+84,35);
     text("DHL SC",left+49.5,45,11,true,90,mid,"center");
 
     doc.setFillColor(255,255,255);doc.setDrawColor(...ink);doc.setLineWidth(.65);doc.roundedRect(117,14,79,39,2,2,"FD");
-    text("REFERENCIA",156.5,20,6.5,true,73,mid,"center");
     const ref=String(sel.prioridad.DATO_PDF||"");
     doc.setFont("helvetica","bold");let refSize=88;
     while(refSize>24){doc.setFontSize(refSize);if(doc.getTextWidth(ref)<=73)break;refSize-=2;}
     doc.setFontSize(refSize);doc.setTextColor(...ink);doc.text(ref,156.5,47,{align:"center",maxWidth:73});
 
-    // Cliente con mayor jerarquía visual.
     doc.setFillColor(255,255,255);doc.setDrawColor(...line);doc.setLineWidth(.3);doc.roundedRect(left,59,182,24,1.5,1.5,"FD");
     text("CLIENTE",105,66,6.8,true,170,mid,"center");
     let clientSize=20;doc.setFont("helvetica","bold");
     while(clientSize>11){doc.setFontSize(clientSize);if(doc.getTextWidth(String(sel.prioridad.CLIENTE||"—"))<=170)break;clientSize-=.5;}
     text(sel.prioridad.CLIENTE||"—",105,78,clientSize,true,170,ink,"center");
 
-    // Los cuatro datos se presentan en tarjetas centradas y alineadas.
     const fields=[
       ["CORTINA",sel.patio["YARD LOCATION"]||"—"],
       ["CARRIER ID",sel.patio["CARRIER ID"]||sel.patio["CARRIER MOVE ID"]||"—"],
@@ -3252,7 +3247,6 @@ function generarPapeletaPDF(){
     const fw=89,fg=4;fields.forEach((f,i)=>centeredField(left+(i%2)*(fw+fg),88+Math.floor(i/2)*16,fw,f[0],f[1]));
     centeredField(left,120,182,"TIPO DE EMBARQUE",sel.prioridad["TIPO DE EMBARQUE"]||"—");
 
-    // Banda de sección monocromática: conserva contraste en impresoras B/N.
     doc.setFillColor(...pale);doc.setDrawColor(...ink);doc.setLineWidth(.45);doc.roundedRect(left,139,182,10,1.5,1.5,"FD");
     text("CHECK LIST OPL 19",105,146,10.5,true,174,ink,"center");
 
@@ -3419,7 +3413,6 @@ async function importarCatalogoRequisitos(){
       }
     }
     if(!candidates.length)throw Error("No encontré una hoja con los siete encabezados obligatorios: CLIENTE, OMP, PAPELETA, ALTURA MÁXIMA, TARIMA, REQUERIMIENTOS y ADITAMENTOS.");
-    // Preferir la tabla con las siete columnas contiguas cuando el libro contiene una tabla dinámica y una tabla limpia.
     candidates.sort((a,b)=>{
       const spread=x=>Math.max(...Object.values(x.indexes))-Math.min(...Object.values(x.indexes));
       return spread(a)-spread(b)||b.matrix.length-a.matrix.length;
@@ -3460,7 +3453,6 @@ async function importarCatalogoRequisitos(){
     if(!await qaDialog({title:"Confirmar importación del catálogo",message:summary,detail:"Revisa las cifras antes de continuar. Se descargará un respaldo JSON del catálogo anterior.",accept:"Confirmar importación"})){setStatus("Reemplazo cancelado. No se modificó el catálogo.","empty");return;}
     const backup=new Blob([JSON.stringify({fecha:new Date().toISOString(),tabla:CATALOGO_TABLE,registros:current},null,2)],{type:"application/json"});
     const url=URL.createObjectURL(backup),link=document.createElement("a");link.href=url;link.download="respaldo_catalogo_maestro_"+new Date().toISOString().slice(0,10)+".json";document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
-    // Preparar registros nuevos antes de borrar los anteriores. Si falla la inserción, conservar el catálogo previo.
     for(let i=0;i<records.length;i+=100){
       setStatus(`Cargando registros nuevos: ${Math.min(i+100,records.length)} de ${records.length}. Los anteriores aún no se han borrado…`);
       const {data,error}=await sb.from(CATALOGO_TABLE).insert(records.slice(i,i+100)).select("id");
@@ -3536,11 +3528,39 @@ const listarBorradoresLocales=()=>operacionLocal("listar");
 async function abrirBorradorLocal(id){const a=await operacionLocal("leer",id);if(!a)return toast("No se encontró el borrador local.");audit=a;renderAudit();irVista("auditoria");$("estadoGuardado").textContent="Borrador recuperado del dispositivo";}
 async function sincronizarPendientes(){if(!navigator.onLine)return;const borradores=await listarBorradoresLocales().catch(()=>[]);if(audit&&borradores.some(a=>a.id===audit.id)){await guardarAhora();return;}if(borradores.length)toast("Hay borradores locales pendientes. Entra a Continuar auditoría para sincronizarlos.");}
 window.addEventListener("online",sincronizarPendientes);
-function scheduleSave(){if(!audit)return;$("estadoGuardado").textContent="Guardando en dispositivo…";guardarBorradorLocal(audit).catch(()=>{});clearTimeout(saveTimer);if(navigator.onLine)saveTimer=setTimeout(guardarAhora,1800);else $("estadoGuardado").textContent="Sin conexión · pendiente de sincronizar";}
+function scheduleSave(){if(!audit||audit.estado==="FINALIZADA")return;$("estadoGuardado").textContent="Guardando en dispositivo…";guardarBorradorLocal(audit).catch(()=>{});clearTimeout(saveTimer);if(navigator.onLine)saveTimer=setTimeout(guardarAhora,1800);else $("estadoGuardado").textContent="Sin conexión · pendiente de sincronizar";}
 async function subirFotos(){const upload=async(p,path)=>{if(!p.data)return;const blob=await(await fetch(p.data)).blob();const {error}=await sb.storage.from(BUCKET).upload(path,blob,{contentType:"image/jpeg",upsert:true});if(error)throw error;p.url=sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;delete p.data;};for(const k of ["unidad","embarque"]){for(const p of audit.fotos[k]||[])await upload(p,`${audit.id}/${k}/${uid()}.jpg`);}for(const h of audit.hallazgos){for(const p of h.fotos||[])await upload(p,`${audit.id}/hallazgos/${h.id}_${uid()}.jpg`);}}
 function payload(){return {datos:audit.datos,unidad:audit.unidad,embarque:audit.embarque,reqMaestro:audit.reqMaestro||null,aditamentos:audit.aditamentos,hallazgos:audit.hallazgos,fotos:audit.fotos,observaciones:audit.observaciones};}
-async function guardarAhora(){if(!audit)return;clearTimeout(saveTimer);const actual=audit;try{await guardarBorradorLocal(actual);if(!navigator.onLine){$("estadoGuardado").textContent="Sin conexión · guardado en dispositivo";return;}$("estadoGuardado").textContent="Sincronizando…";await subirFotos();const row={id:actual.id,estado:actual.estado==="BORRADOR"?"BORRADOR":"EN PROCESO",datos:payload().datos,auditor:actual.auditor||userName(),payload:payload(),updated_at:new Date().toISOString()};const {error}=await sb.from(TABLE).upsert(row,{onConflict:"id"});if(error)throw error;actual.estado=row.estado==="BORRADOR"?"EN PROCESO":row.estado;await eliminarBorradorLocal(actual.id);$("estadoGuardado").textContent="Sincronizado · "+new Date().toLocaleTimeString();}catch(e){$("estadoGuardado").textContent="Guardado local · pendiente de sincronizar";console.warn("Sincronización pendiente",e);}}
-async function cargarAbiertas(){const el=$("listaAbiertas");el.innerHTML="Cargando registros…";try{const {data,error}=await sb.from(TABLE).select("id,estado,datos,auditor,updated_at").in("estado",["BORRADOR","EN PROCESO"]).order("updated_at",{ascending:false});if(error)throw error;el.innerHTML=(data||[]).map(r=>`<div class="open-row"><span><b>${esc(r.datos?.unidad||r.id)}</b><small>Cortina: ${esc(r.datos?.cortina||"—")} · Cliente: ${esc(r.datos?.cliente||"—")} · Unidad de envío: ${esc(r.datos?.unidad||"—")} · OMP ${esc(r.datos?.omp||"")} · Último usuario: ${esc(r.auditor||"")} · ${new Date(r.updated_at).toLocaleString()}</small></span><span class="match-pill">${esc(r.estado)}</span><button class="btn btn-primary btn-small" onclick="abrirAuditoria('${r.id}')">Abrir / continuar</button>${isAdmin()?`<button class="btn btn-secondary btn-small" onclick="eliminarAuditoria('${r.id}')">Eliminar</button>`:""}</div>`).join("")||'<div class="muted">No hay auditorías abiertas.</div>';}catch(e){el.innerHTML=`<div class="warning">Sin conexión. Puedes recuperar borradores guardados en este dispositivo desde el botón de abajo.</div>`;}finally{const locales=await listarBorradoresLocales().catch(()=>[]);if(locales.length)el.insertAdjacentHTML("afterbegin",`<div class="warning">${locales.length} borrador(es) en este dispositivo, pendientes de sincronizar. ${locales.map(r=>`<button class="btn btn-secondary btn-small" onclick="abrirBorradorLocal('${r.id}')">Continuar ${esc(r.datos?.unidad||r.id)}</button>`).join(" ")}</div>`);}}
+let guardadoEnCurso=null, cambiosPendientes=false;
+async function guardarAhora(){
+  if(!audit)return;
+  clearTimeout(saveTimer);
+  if(guardadoEnCurso){cambiosPendientes=true;return guardadoEnCurso;}
+  const actual=audit;
+  guardadoEnCurso=(async()=>{
+    do{
+      cambiosPendientes=false;
+      try{
+        await guardarBorradorLocal(actual);
+        if(!navigator.onLine){$("estadoGuardado").textContent="Sin conexión · guardado en dispositivo";break;}
+        $("estadoGuardado").textContent="Sincronizando…";
+        await subirFotos();
+        const contenido=payload();
+        const row={id:actual.id,estado:actual.estado==="BORRADOR"?"BORRADOR":"EN PROCESO",datos:contenido.datos,auditor:actual.auditor||userName(),payload:contenido,updated_at:new Date().toISOString()};
+        const {data:remoto,error:consultaError}=await sb.from(TABLE).select("estado").eq("id",actual.id).maybeSingle();
+        if(consultaError)throw consultaError;
+        if(remoto?.estado==="FINALIZADA"){await eliminarBorradorLocal(actual.id);$("estadoGuardado").textContent="Auditoría finalizada";break;}
+        const {error}=await sb.from(TABLE).upsert(row,{onConflict:"id"});
+        if(error)throw error;
+        actual.estado="EN PROCESO";
+        if(!cambiosPendientes){await eliminarBorradorLocal(actual.id);$("estadoGuardado").textContent="Sincronizado · "+new Date().toLocaleTimeString();}
+      }catch(e){$("estadoGuardado").textContent="Guardado local · pendiente de sincronizar";console.warn("Sincronización pendiente",e);break;}
+    }while(cambiosPendientes&&audit===actual&&navigator.onLine);
+  })();
+  try{await guardadoEnCurso;}finally{guardadoEnCurso=null;if(cambiosPendientes&&audit===actual)scheduleSave();}
+}
+
+async function cargarAbiertas(){const el=$("listaAbiertas");el.innerHTML="Cargando registros…";try{const {data,error}=await sb.from(TABLE).select("id,estado,datos,auditor,updated_at").in("estado",["BORRADOR","EN PROCESO"]).order("updated_at",{ascending:false});if(error)throw error;const vistos=new Set();const registros=(data||[]).filter(r=>{const clave=normalizarClaveCruce(r.datos?.unidad).flex||r.id;if(vistos.has(clave))return false;vistos.add(clave);return true;});el.innerHTML=registros.map(r=>`<div class="open-row"><span><b>${esc(r.datos?.unidad||r.id)}</b><small>Cortina: ${esc(r.datos?.cortina||"—")} · Cliente: ${esc(r.datos?.cliente||"—")} · Unidad de envío: ${esc(r.datos?.unidad||"—")} · OMP ${esc(r.datos?.omp||"")} · Último usuario: ${esc(r.auditor||"")} · ${new Date(r.updated_at).toLocaleString()}</small></span><span class="match-pill">${esc(r.estado)}</span><button class="btn btn-primary btn-small" onclick="abrirAuditoria('${r.id}')">Abrir / continuar</button>${isAdmin()?`<button class="btn btn-secondary btn-small" onclick="eliminarAuditoria('${r.id}')">Eliminar</button>`:""}</div>`).join("")||'<div class="muted">No hay auditorías abiertas.</div>';}catch(e){el.innerHTML=`<div class="warning">Sin conexión. Puedes recuperar borradores guardados en este dispositivo desde el botón de abajo.</div>`;}finally{const locales=await listarBorradoresLocales().catch(()=>[]);if(locales.length)el.insertAdjacentHTML("afterbegin",`<div class="warning">${locales.length} borrador(es) en este dispositivo, pendientes de sincronizar. ${locales.map(r=>`<button class="btn btn-secondary btn-small" onclick="abrirBorradorLocal('${r.id}')">Continuar ${esc(r.datos?.unidad||r.id)}</button>`).join(" ")}</div>`);}}
 async function eliminarAuditoria(id){
   if(!isAdmin())return toast("Solo un administrador puede eliminar auditorías.");
   if(!await qaDialog({title:"Eliminar auditoría",message:"¿Eliminar definitivamente esta auditoría en proceso?",detail:"Esta acción no se puede deshacer.",danger:true,accept:"Eliminar auditoría"}))return;
@@ -3551,9 +3571,9 @@ async function eliminarAuditoria(id){
     toast("Auditoría eliminada correctamente.");await cargarAbiertas();
   }catch(e){toast("No se pudo eliminar: "+e.message);}
 }
-async function abrirAuditoria(id){try{const {data,error}=await sb.from(TABLE).select("*").eq("id",id).single();if(error)throw error;const p=data.payload||{};audit={id:data.id,estado:data.estado,auditor:data.auditor,datos:data.datos||{},unidad:p.unidad||{},embarque:p.embarque||{},reqMaestro:p.reqMaestro||null,aditamentos:p.aditamentos||{},hallazgos:p.hallazgos||[],fotos:p.fotos||{unidad:[],embarque:[]},observaciones:p.observaciones||""};for(const k of ["unidad","embarque"])for(const f of audit.fotos[k]||[])if(f.url){try{const r=await fetch(f.url);f.data=URL.createObjectURL(await r.blob());}catch(e){}}for(const h of audit.hallazgos)for(const f of h.fotos||[])if(f.url){try{const r=await fetch(f.url);f.data=URL.createObjectURL(await r.blob());}catch(e){}}renderAudit();irVista("auditoria");consultarRequisitos();}
+async function abrirAuditoria(id){try{const {data,error}=await sb.from(TABLE).select("*").eq("id",id).single();if(error)throw error;const p=data.payload||{};audit={id:data.id,estado:data.estado,auditor:data.auditor,datos:data.datos||{},unidad:p.unidad||{},embarque:p.embarque||{},reqMaestro:p.reqMaestro||null,aditamentos:p.aditamentos||{},hallazgos:p.hallazgos||[],fotos:p.fotos||{unidad:[],embarque:[]},observaciones:p.observaciones||""};for(const k of ["unidad","embarque"])for(const f of audit.fotos[k]||[])if(f.url&&!f.data)f.data=f.url;for(const h of audit.hallazgos)for(const f of h.fotos||[])if(f.url&&!f.data)f.data=f.url;const nuevo=prioridadRows.find(r=>normalizarClaveCruce(r.UE||r.SHIPMENT||r.CARRIER).flex===normalizarClaveCruce(audit.datos.unidad).flex);if(nuevo){audit.datos.cliente=audit.datos.cliente||nuevo.CLIENTE||"";audit.datos.omp=audit.datos.omp||nuevo.OMP||"";audit.datos.linea=audit.datos.linea||nuevo.LINEA||"";audit.datos.teorica=audit.datos.teorica||nuevo.TEORICA||"";audit.datos.columna_j=audit.datos.columna_j||nuevo.COLUMNA_J||"";}renderAudit();irVista("auditoria");consultarRequisitos();}
 catch(e){toast("No se pudo abrir: "+e.message);}}
-async function finalizarAuditoria(){if(!audit)return;if(!navigator.onLine){await guardarBorradorLocal(audit);toast("Sin conexión: auditoría guardada en el dispositivo. Finaliza cuando vuelva internet.");return;}const incomplete=[...CHECK_UNIDAD.map(x=>audit.unidad[x]),...CHECK_EMBARQUE.map(x=>audit.embarque[x])].filter(x=>!x?.respuesta);if(incomplete.length&&!await qaDialog({title:"Auditoría con puntos pendientes",message:`Hay ${incomplete.length} puntos sin respuesta. ¿Deseas finalizar de todos modos?`,accept:"Finalizar auditoría"}))return;const invalid=audit.hallazgos.some(h=>!h.clasificacion||!h.descripcion.trim());if(invalid){toast("Completa clasificación y descripción de todos los hallazgos.");return;}try{await subirFotos();const hs=audit.hallazgos;const result=hs.some(x=>x.clasificacion==="CRÍTICO")?"RECHAZADO":hs.some(x=>["MAYOR","MENOR","OBSERVACIÓN"].includes(x.clasificacion))?"LIBERADO CON OBSERVACIÓN":"LIBERADO";const now=new Date();const row={id:audit.id,estado:"FINALIZADA",resultado:result,fecha_cierre:now.toISOString(),auditor:audit.auditor||userName(),datos:audit.datos,payload:payload(),observaciones_finales:audit.observaciones||""};const {error}=await sb.from(TABLE).upsert(row,{onConflict:"id"});if(error)throw error;await eliminarBorradorLocal(audit.id);toast("Auditoría finalizada: "+result);irVista("reportes");}catch(e){toast("No se pudo finalizar: "+e.message);}}
+async function finalizarAuditoria(){if(!audit)return;clearTimeout(saveTimer);if(guardadoEnCurso)await guardadoEnCurso;if(!navigator.onLine){await guardarBorradorLocal(audit);toast("Sin conexión: auditoría guardada en el dispositivo. Finaliza cuando vuelva internet.");return;}const incomplete=[...CHECK_UNIDAD.map(x=>audit.unidad[x]),...CHECK_EMBARQUE.map(x=>audit.embarque[x])].filter(x=>!x?.respuesta);if(incomplete.length&&!await qaDialog({title:"Auditoría con puntos pendientes",message:`Hay ${incomplete.length} puntos sin respuesta. ¿Deseas finalizar de todos modos?`,accept:"Finalizar auditoría"}))return;const invalid=audit.hallazgos.some(h=>!h.clasificacion||!h.descripcion.trim());if(invalid){toast("Completa clasificación y descripción de todos los hallazgos.");return;}try{await subirFotos();const hs=audit.hallazgos;const result=hs.some(x=>x.clasificacion==="CRÍTICO")?"RECHAZADO":hs.some(x=>["MAYOR","MENOR","OBSERVACIÓN"].includes(x.clasificacion))?"LIBERADO CON OBSERVACIÓN":"LIBERADO";const now=new Date();const row={id:audit.id,estado:"FINALIZADA",resultado:result,fecha_cierre:now.toISOString(),auditor:audit.auditor||userName(),datos:audit.datos,payload:payload(),observaciones_finales:audit.observaciones||""};const {error}=await sb.from(TABLE).upsert(row,{onConflict:"id"});if(error)throw error;await eliminarBorradorLocal(audit.id);audit.estado="FINALIZADA";toast("Auditoría finalizada: "+result);irVista("reportes");}catch(e){toast("No se pudo finalizar: "+e.message);}}
 async function generarPDF(reg=audit){
   if(!reg)return;
   try{
@@ -3626,6 +3646,7 @@ async function generarPDF(reg=audit){
   }catch(error){console.error("Error al generar PDF de embarque",error);toast("No se pudo generar el PDF: "+error.message);}
 }
 
+async function cargarReportes(){const box=$("tablaReportes");box.textContent="Consultando…";try{let q=sb.from(TABLE).select("*").eq("estado","FINALIZADA").order("fecha_cierre",{ascending:false});const {data,error}=await q;if(error)throw error;reportRows=(data||[]).filter(r=>{const d=r.datos||{},p=r.payload||{},hs=p.hallazgos||[];const val=(id)=>$(id).value.trim().toLowerCase();const dt=r.fecha_cierre?new Date(r.fecha_cierre):new Date(r.created_at);return(!val("fDesde")||dt>=new Date(val("fDesde")+"T00:00:00"))&&(!val("fHasta")||dt<=new Date(val("fHasta")+"T23:59:59"))&&(!val("fCliente")||String(d.cliente||"").toLowerCase().includes(val("fCliente")))&&(!val("fOmp")||String(d.omp||"").toLowerCase().includes(val("fOmp")))&&(!val("fResultado")||r.resultado===val("fResultado").toUpperCase())&&(!val("fAuditor")||String(r.auditor||"").toLowerCase().includes(val("fAuditor")))&&(!val("fLinea")||String(d.linea||"").toLowerCase().includes(val("fLinea")))&&(!val("fClasificacion")||hs.some(h=>h.clasificacion===val("fClasificacion").toUpperCase()));});renderReportes();}catch(e){box.innerHTML=`<div class="warning">${esc(e.message)}</div>`;}}
 function renderReportes(){const all=reportRows,hs=all.flatMap(r=>r.payload?.hallazgos||[]);const count=(r)=>all.filter(x=>x.resultado===r).length;$("kpisReportes").innerHTML=[["TOTAL AUDITORÍAS",all.length],["LIBERADAS",count("LIBERADO")],["CON OBSERVACIÓN",count("LIBERADO CON OBSERVACIÓN")],["RECHAZADAS",count("RECHAZADO")],["TOTAL HALLAZGOS",hs.length],["CRÍTICOS",hs.filter(x=>x.clasificacion==="CRÍTICO").length],["MAYORES",hs.filter(x=>x.clasificacion==="MAYOR").length],["MENORES",hs.filter(x=>x.clasificacion==="MENOR").length]].map(x=>`<div class="report-kpi"><span>${x[0]}</span><b>${x[1]}</b></div>`).join("");$("tablaReportes").innerHTML=`<table><thead><tr><th>Fecha</th><th>Unidad</th><th>Cliente</th><th>OMP</th><th>Auditor</th><th>Resultado</th><th>PDF</th></tr></thead><tbody>${all.map(r=>`<tr><td>${r.fecha_cierre?new Date(r.fecha_cierre).toLocaleDateString():""}</td><td>${esc(r.datos?.unidad)}</td><td>${esc(r.datos?.cliente)}</td><td>${esc(r.datos?.omp)}</td><td>${esc(r.auditor)}</td><td>${esc(r.resultado)}</td><td><button class="btn btn-secondary btn-small" onclick="generarPDFPorId('${r.id}')">PDF</button></td></tr>`).join("")}</tbody></table>`;}
 async function generarPDFPorId(id){const r=reportRows.find(x=>x.id===id);if(!r)return;try{const {data,error}=await sb.from(TABLE).select("*").eq("id",id).single();if(error)throw error;const p=data.payload||{};await generarPDF({...data,...p,datos:data.datos||{},resultado:data.resultado,auditor:data.auditor});}catch(e){toast("No se pudo generar el PDF de esta auditoría: "+e.message);}}
 function limpiarFiltros(){["fDesde","fHasta","fCliente","fOmp","fResultado","fAuditor","fLinea","fClasificacion"].forEach(x=>$(x).value="");cargarReportes();}
@@ -3662,12 +3683,9 @@ const accesoEmbarques=!!(user&&!guest&&(adminEmbarques||areaEmbarques==='CALIDAD
 const current=ITEMS.find(x=>x.href.toLowerCase()===path.toLowerCase()),canSeeDash=!!(!guest&&(adminEmbarques||(user&&allowed))),canSeePanel=canSeeDash||accesoEmbarques;
 if(current&&current.embarques&&!accesoEmbarques){location.replace('index.html');return;}
 if(current&&current.protected&&!canSeeDash){location.replace('index.html');return;}
-// El panel fijo es exclusivo de perfiles con permiso de Dashboard.
 if(!canSeePanel){const publicHome=document.createElement('a');publicHome.className='qtn-home-float qa-no-panel-home';publicHome.href='index.html';publicHome.setAttribute('aria-label','Volver al PORTAL DE CALIDAD: Site SMO');publicHome.innerHTML=svg('home')+'<span>INICIO</span>';document.body.appendChild(publicHome);return;} // Usuarios sin panel conservan un acceso visible al inicio.
-// Oculta la navegación anterior en todas las páginas sin tocar botones de captura, filtros o exportación.
 document.querySelectorAll('.nav-dash,.qa-unified-nav,.dash-nav,.dashboard-nav').forEach(el=>el.style.setProperty('display','none','important'));
 if(isIndex)return;
-// Home visible en los tres sistemas operativos incluso si no existe un header reconocible.
 const homeLink=document.createElement('a');homeLink.className='qtn-home-float';homeLink.href='index.html';homeLink.setAttribute('aria-label','Volver al inicio');homeLink.innerHTML=svg('home')+'<span>INICIO</span>';
 const panel=document.createElement('aside');panel.className='qtn-rail';panel.setAttribute('aria-label','Navegación principal');panel.innerHTML='<div class="qtn-brand"><div class="qtn-brand-row"><div><div class="qtn-brand-name">PORTAL DE CALIDAD: Site SMO</div></div></div></div><a class="qtn-home-link" href="index.html">'+svg('home')+'<span>Inicio / Portal principal</span></a><div class="qtn-search-wrap"><div class="qtn-search-box">'+svg('search')+'<input class="qtn-search" type="search" placeholder="Buscar módulo…" autocomplete="off" aria-label="Buscar módulo"></div></div><nav class="qtn-links" aria-label="Módulos disponibles"></nav>';
 const nav=panel.querySelector('.qtn-links'),search=panel.querySelector('.qtn-search');
@@ -3847,7 +3865,7 @@ input::placeholder,textarea::placeholder{color:#8b9bb0!important}
 .folio-pill,.folio{background:rgba(255,255,255,.92)!important;border:1px solid #e0e8f2!important;border-radius:14px!important;box-shadow:0 5px 18px rgba(20,54,94,.05)!important}
 .folio-pill .val,.folio b{color:#f45a00!important}
 .auditorias-inicio-shell{border:1px solid #dce6f2!important;border-radius:18px!important;box-shadow:0 18px 55px rgba(5,29,67,.18)!important}
-.auditorias-inicio-head{background:linear-gradient(110deg,#061d43,#0a3971)!important;color:#fff!important}
+.auditorias-inicio-head{background:#08264f!important;color:#fff!important}
 .auditorias-inicio-head h2{color:#fff!important}
 .qa-creditos-unificados{box-sizing:border-box!important;width:100%!important;margin:16px auto 0!important;padding:14px 18px!important;text-align:center!important;color:#78889e!important;border-top:1px solid #dce5f0!important;background:transparent!important;font-size:11px!important}
 .qa-creditos-unificados strong{color:#263d5d!important}
