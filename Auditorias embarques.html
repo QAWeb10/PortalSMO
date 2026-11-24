@@ -2761,7 +2761,7 @@ body.qa-dialog-open{overflow:hidden}.qa-dialog{width:min(560px,100%);max-height:
   </section>
   <section class="card">
     <div class="card-head"><h2><span class="section-number">02</span> Auditoría de unidad</h2><small>15 puntos · inspección interior previa a carga</small></div>
-    <div class="card-body"><div id="checkUnidadProgreso" class="check-progress" aria-live="polite"></div><div id="checkUnidad" class="check-grid"></div>
+    <div class="card-body"><div id="checkUnidadProgreso" class="check-progress" aria-live="polite"></div><div id="checkUnidad" class="check-grid"></div><div id="fumigacionCampos" class="data-grid" style="margin-top:12px"></div>
       <div class="photo-section"><div class="photo-head"><b>Evidencia fotográfica de unidad</b><button class="btn btn-secondary btn-small" onclick="abrirCamara('unidad')">＋ Tomar fotografía</button></div><div id="fotosUnidad" class="photo-grid"></div></div>
     </div>
   </section>
@@ -3076,7 +3076,18 @@ function sincronizarDatosAuditoriaConExcel(){
   });
   return true;
 }
+function renderFumigacion(){
+  const d=audit.datos;
+  const opciones=(val,values)=>'<option value="">Seleccionar</option>'+values.map(v=>`<option value="${v}" ${val===v?"selected":""}>${v}</option>`).join("");
+  $("fumigacionCampos").innerHTML=`<div class="field"><label for="certFumigacion">¿La unidad cuenta con certificado de fumigación?</label><select id="certFumigacion" onchange="cambiarFumigacion('certificado_fumigacion',this.value)">${opciones(d.certificado_fumigacion,["SÍ","NO"])}</select></div><div class="field"><label for="vigFumigacion">¿El certificado de fumigación está vigente?</label><select id="vigFumigacion" ${d.certificado_fumigacion!=="SÍ"?"disabled":""} onchange="cambiarFumigacion('vigencia_fumigacion',this.value)">${opciones(d.vigencia_fumigacion,["SÍ","NO","NO APLICA"])}</select></div>`;
+}
+function cambiarFumigacion(k,v){
+  audit.datos[k]=v;
+  if(k==="certificado_fumigacion")audit.datos.vigencia_fumigacion=v==="NO"?"NO APLICA":"";
+  renderFumigacion();scheduleSave();
+}
 function renderAudit(){
+  renderFumigacion();
   $("folioAuditoria").textContent=audit.id.slice(0,8).toUpperCase();
   $("datosGenerales").innerHTML=[["CORTINA","cortina"],["UE","ue"],["CARRIER ID","carrier_id"],["OMP","omp"],["TEÓRICA","teorica"],["TIPO DE EMBARQUE","tipo"],["CLIENTE","cliente"],["LÍNEA DE TRANSPORTE","linea"],["ECO DE CAJA","eco"]].map(([l,k])=>`<div class="data-tile"><span>${l}</span><b>${esc(audit.datos[k]||"—")}</b></div>`).join("");
   renderChecks("checkUnidad",CHECK_UNIDAD,"unidad");renderChecks("checkEmbarque",CHECK_EMBARQUE,"embarque");renderPhotos();renderHallazgos();$("observacionesFinales").value=audit.observaciones||"";updateResult();
@@ -3195,6 +3206,7 @@ async function consultarRequisitos(ompManual){
     const key=ompKey(omp);
     const porOmp=rows.filter(r=>r.criterio==="OMP"&&(r.omp_values||[]).some(v=>{const k=ompKey(v);return k.exact===key.exact||(key.flex&&k.flex===key.flex)}));
     const selected=resolverMaestro(audit.datos.cliente,omp,j,e,rows);
+    audit.datos.estado_consulta_requisitos="COMPLETADA";
     audit.reqMaestro=selected?{...selected,origen:modal?"MODAL (COLUMNA J)":granel?"GRANEL (COLUMNA E = N)":"GRUPO DE OMP"}:null;
     renderRequisitos();
     if(ompManual&&omp!==String(audit.datos.omp||"").trim()){
@@ -3203,6 +3215,8 @@ async function consultarRequisitos(ompManual){
     scheduleSave();
   }catch(e){
     audit.reqMaestro=null;
+    audit.datos.estado_consulta_requisitos="ERROR";
+    scheduleSave();
     $("requisitosEstado").textContent="Error al consultar";
     $("requisitosPanel").innerHTML=`<div class="warning">${esc(e.message)}</div>`;
     const diag=null;if(diag)diag.textContent="No se pudo completar la consulta. Intenta nuevamente.";
@@ -3212,7 +3226,7 @@ function renderRequisitos(){
   const r=audit.reqMaestro;
   if(!r){
     $("requisitosEstado").textContent="Sin requerimientos especiales";
-    $("requisitosPanel").innerHTML='<div class="muted">No se encontró coincidencia MODAL, GRANEL ni OMP. Esta unidad no lleva requerimientos especiales.</div>';
+    $("requisitosPanel").innerHTML='<div class="muted">SIN REQUERIMIENTOS ESPECIALES DE ACUERDO A LO DOCUMENTADO EN LA OPL 19 VIGENTE.</div>';
     $("checkAditamentos").innerHTML="";
     return;
   }
@@ -3249,7 +3263,7 @@ async function buscarPapeletaUE(){
     const d=papeletaSeleccionada;
     box.innerHTML=`<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><small style="color:#78899a;font-weight:800">UNIDAD DE ENVÍO</small><div class="papeleta-ue">${esc(pr.UE)}</div></div><div><small style="color:#78899a;font-weight:800">CLIENTE</small><div style="font-size:17px;font-weight:900">${esc(pr.CLIENTE||"—")}</div></div></div>
       <div class="info-grid"><div class="info-field"><span>Cortina</span><strong>${esc(d.patio["YARD LOCATION"]||"—")}</strong></div><div class="info-field"><span>Carrier ID (Excel 1, columna B)</span><strong>${esc(d.patio["CARRIER ID"]||"—")}</strong></div><div class="info-field"><span>Teórica</span><strong>${esc(pr.TEORICA||"—")}</strong></div><div class="info-field"><span>OMP</span><strong>${esc(pr.OMP||"—")}</strong></div><div class="info-field"><span>Tipo de embarque (Excel 2, columna B)</span><strong>${esc(pr["TIPO DE EMBARQUE"]||"—")}</strong></div><div class="info-field"><span>Indicador GRANEL (Excel 2, columna E)</span><strong>${esc(pr.GRANEL_FLAG||"—")}</strong></div></div>
-      <div class="${maestro?"alert alert-success":"alert alert-warning"}" style="margin-top:10px">${maestro?`Coincidencia ${maestro.origen==="MODAL (COLUMNA J)"?"TRANSMODAL global por columna J":"por grupo de OMP"}: ${esc(maestro.cliente==="*"?"todos los clientes":maestro.cliente)}`:"No se encontró coincidencia MODAL, GRANEL ni OMP. El PDF podrá generarse sin requerimientos especiales."}</div>`;
+      <div class="${maestro?"alert alert-success":"alert alert-warning"}" style="margin-top:10px">${maestro?`Coincidencia ${maestro.origen==="MODAL (COLUMNA J)"?"TRANSMODAL global por columna J":"por grupo de OMP"}: ${esc(maestro.cliente==="*"?"todos los clientes":maestro.cliente)}`:"SIN REQUERIMIENTOS ESPECIALES DE ACUERDO A LO DOCUMENTADO EN LA OPL 19 VIGENTE."}</div>`;
     btn.disabled=false;
   }catch(e){box.innerHTML=`<div class="warning">No se pudo consultar el catálogo: ${esc(e.message)}</div>`;}
 }
@@ -3316,7 +3330,7 @@ function generarPapeletaPDF(){
     const partesAltura=separarAlturaTarima(r.altura_tarima);add("PAPELETA",r.papeleta);add("ALTURA MÁXIMA",r.altura_maxima||partesAltura.altura_maxima);add("TARIMA",r.tarima||partesAltura.tarima);
     String(r.requerimientos||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean).forEach((v,i)=>add("REQUERIMIENTO "+(i+1),v));
     (r.aditamentos||[]).forEach((v,i)=>add("ADITAMENTO "+(i+1),v));
-    if(!entries.length)entries.push({label:"CATÁLOGO",value:"Sin requerimientos configurados para esta OMP o para el cliente en general."});
+    if(!entries.length)entries.push({label:"CATÁLOGO",value:"SIN REQUERIMIENTOS ESPECIALES DE ACUERDO A LO DOCUMENTADO EN LA OPL 19 VIGENTE."});
     const availableTop=139, availableBottom=213;
     const valueWidth=124;
     const calculate=(size,pad)=>{
@@ -3607,7 +3621,7 @@ function renderHallazgos(){
     const label=origen.slice(1).join(":");
     return `<div class="hallazgo-resumen-item"><span class="hallazgo-resumen-num">${i+1}</span><div><b>${esc(label)}</b><div class="muted">${esc(h.clasificacion||"Pendiente de clasificación")}${h.descripcion?" · "+esc(h.descripcion):""}</div></div><button type="button" class="btn btn-secondary btn-small" onclick="irHallazgoChecklist('${h.id}')">Ver</button></div>`;
   }).join("")}</div>`:'<div class="muted">Sin hallazgos del checklist.</div>';
-  const extras=manual.map((h,i)=>`<div class="finding-card"><div class="finding-head"><b>Hallazgo adicional ${i+1}</b><button type="button" class="btn btn-secondary btn-small" onclick="eliminarHallazgo('${h.id}')">Eliminar</button></div><div class="field"><label>Clasificación</label><select onchange="actualizarHallazgo('${h.id}','clasificacion',this.value)"><option value="">Seleccionar</option>${["CRÍTICO","MAYOR","MENOR","OBSERVACIÓN"].map(x=>`<option ${h.clasificacion===x?"selected":""}>${x}</option>`).join("")}</select></div><div class="field"><label>Descripción</label><textarea rows="2" oninput="actualizarHallazgo('${h.id}','descripcion',this.value)">${esc(h.descripcion||"")}</textarea></div><div class="photo-head"><b>Evidencia (opcional)</b><button type="button" class="btn btn-secondary btn-small" onclick="abrirCamara('hallazgo:${h.id}')">＋ Cámara</button></div><div class="photo-grid">${(h.fotos||[]).map((p,j)=>`<div class="photo-thumb"><img src="${p.data||p.url||""}" alt="Evidencia"><button type="button" onclick="eliminarFotoHallazgo('${h.id}',${j})">×</button></div>`).join("")}</div></div>`).join("");
+  const extras=manual.map((h,i)=>`<div class="finding-card"><div class="finding-head"><b>Hallazgo adicional ${i+1}</b><button type="button" class="btn btn-secondary btn-small" onclick="eliminarHallazgo('${h.id}')">Eliminar</button></div><div class="field"><label>Clasificación del hallazgo</label><select onchange="actualizarHallazgo('${h.id}','clasificacion',this.value)"><option value="">Seleccionar</option>${["CRÍTICO","MAYOR","MENOR","OBSERVACIÓN"].map(x=>`<option ${h.clasificacion===x?"selected":""}>${x}</option>`).join("")}</select></div><div class="field"><label>Descripción</label><textarea rows="2" oninput="actualizarHallazgo('${h.id}','descripcion',this.value)">${esc(h.descripcion||"")}</textarea></div><div class="photo-head"><b>Evidencia (opcional)</b><button type="button" class="btn btn-secondary btn-small" onclick="abrirCamara('hallazgo:${h.id}')">＋ Cámara</button></div><div class="photo-grid">${(h.fotos||[]).map((p,j)=>`<div class="photo-thumb"><img src="${p.data||p.url||""}" alt="Evidencia"><button type="button" onclick="eliminarFotoHallazgo('${h.id}',${j})">×</button></div>`).join("")}</div></div>`).join("");
   box.innerHTML=`<div class="hallazgo-resumen-titulo">${linked.length} del checklist · ${manual.length} adicionales</div>${summary}${extras}`;
 }
 function irHallazgoChecklist(id){
@@ -3719,7 +3733,7 @@ async function generarPDF(reg=audit){
     const {jsPDF}=window.jspdf,doc=new jsPDF({unit:"mm",format:"a4"});
     const datos=reg.datos||{},valor=v=>v===null||v===undefined||String(v).trim()===""?"NO APLICA":String(v);
     const seguro=v=>String(v||"SIN_UE").trim().replace(/[^a-zA-Z0-9_-]/g,"_");
-    const ue=datos.ue||datos.UE||datos.numero_embarque||datos.embarque||reg.ue||reg.id||"SIN_UE";
+    const ue=datos.ue||datos.UE||datos.numero_embarque||datos.embarque||reg.ue||datos.unidad||reg.id||"SIN_UE";
     const auditor=reg.auditor||userName(),fecha=reg.fecha_cierre||reg.created_at||new Date().toISOString();
     const margen={izq:10,der:200,top:28,bottom:276};let y=margen.top;
     function encabezado(){
@@ -3754,13 +3768,13 @@ async function generarPDF(reg=audit){
       }catch(e){parrafo("Evidencia fotográfica","Imagen no disponible en PDF");}
     }
     encabezado();bloque("DATOS DE AUDITORÍA");
-    fila([["UE / NÚMERO DE EMBARQUE",ue],["Unidad",datos.unidad],["OMP",datos.omp],["Fecha",new Date(fecha).toLocaleDateString("es-MX")]]);
+    fila([["UE / NÚMERO DE EMBARQUE",ue],...(datos.unidad&&String(datos.unidad).trim()!==String(ue).trim()?[["Unidad",datos.unidad]]:[]),["OMP",datos.omp],["Fecha",new Date(fecha).toLocaleDateString("es-MX")]]);
     fila([["Auditor",auditor],["Cliente",datos.cliente],["Carrier ID",datos.carrier_id],["Línea",datos.linea]]);
     fila([["Teórica",datos.teorica],["Resultado",reg.resultado||$("resultadoEstimado")?.textContent||"PENDIENTE"]]);
-    const extras=Object.entries(datos).filter(([k,v])=>!['ue','UE','numero_embarque','embarque','unidad','omp','cliente','carrier_id','linea','teorica'].includes(k)&&v!==null&&v!==undefined&&String(v).trim());
+    const extras=Object.entries(datos).filter(([k,v])=>!['ue','UE','numero_embarque','embarque','unidad','omp','cliente','carrier_id','linea','teorica','columna_j','estado_consulta_requisitos','certificado_fumigacion','vigencia_fumigacion'].includes(k)&&v!==null&&v!==undefined&&String(v).trim());
     if(extras.length){bloque("INFORMACIÓN COMPLEMENTARIA");for(const [k,v] of extras)parrafo(k.replace(/_/g," "),v);}
     for(const [titulo,seccion] of [["AUDITORÍA DE UNIDAD",reg.unidad],["AUDITORÍA DE EMBARQUE",reg.embarque]]){
-      bloque(titulo);const items=Object.entries(seccion||{});
+      bloque(titulo);if(titulo==="AUDITORÍA DE UNIDAD"){parrafo("¿La unidad cuenta con certificado de fumigación?",datos.certificado_fumigacion||"SIN REGISTRO");parrafo("¿El certificado de fumigación está vigente?",datos.vigencia_fumigacion||"SIN REGISTRO");}const items=Object.entries(seccion||{});
       if(!items.length)parrafo("Checklist","Sin respuestas registradas");
       for(const [nombre,detalle] of items){
         const d=detalle&&typeof detalle==="object"?detalle:{respuesta:detalle};
@@ -3769,7 +3783,7 @@ async function generarPDF(reg=audit){
       }
     }
     bloque("REQUERIMIENTOS ESPECIALES");
-    if(reg.reqMaestro){const r=reg.reqMaestro;for(const [k,v] of [["Papeleta",r.papeleta],["Altura máxima",r.altura_maxima||r.altura_tarima],["Tarima",r.tarima],["Estiba",r.estiba],["Requerimientos",r.requerimientos],["Aditamentos",Array.isArray(r.aditamentos)?r.aditamentos.join(", "):r.aditamentos]])if(v!==null&&v!==undefined&&String(v).trim())parrafo(k,v);}else parrafo("Resultado","Sin requerimientos especiales aplicables");
+    if(reg.reqMaestro){const r=reg.reqMaestro;for(const [k,v] of [["Papeleta",r.papeleta],["Altura máxima",r.altura_maxima||r.altura_tarima],["Tarima",r.tarima],["Estiba",r.estiba],["Requerimientos",r.requerimientos],["Aditamentos",Array.isArray(r.aditamentos)?r.aditamentos.join(", "):r.aditamentos]])if(v!==null&&v!==undefined&&String(v).trim())parrafo(k,v);}else parrafo("Resultado",datos.estado_consulta_requisitos==="ERROR"?"No se pudo consultar el catálogo de requerimientos especiales.":"SIN REQUERIMIENTOS ESPECIALES DE ACUERDO A LO DOCUMENTADO EN LA OPL 19 VIGENTE.");
     bloque("ADITAMENTOS");const aditamentos=Object.entries(reg.aditamentos||{});if(!aditamentos.length)parrafo("Registro","Sin aditamentos registrados");for(const [k,v] of aditamentos)parrafo(k,v&&typeof v==="object"?JSON.stringify(v):v);
     bloque("HALLAZGOS");const hallazgos=reg.hallazgos||[];if(!hallazgos.length)parrafo("Resultado","Sin hallazgos registrados");
     for(let i=0;i<hallazgos.length;i++){const h=hallazgos[i]||{};parrafo(`Hallazgo ${i+1} · ${h.clasificacion||"SIN CLASIFICAR"}`,h.descripcion||h.observaciones||"Sin descripción");if(h.bloque||h.pregunta)parrafo("Origen",[h.bloque,h.pregunta].filter(Boolean).join(" · "));for(const f of h.fotos||[])await foto(f.data||f.url||f);}
